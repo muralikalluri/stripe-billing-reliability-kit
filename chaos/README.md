@@ -23,7 +23,7 @@ chaos/targets/spring-boot.sh up
 CHAOS_TARGET=spring-boot chaos/run-all.sh
 chaos/targets/spring-boot.sh down
 ```
-`CHAOS_TARGET` picks `chaos/targets/<target>.env.sh`, which is applied AFTER `.env`, so `.env` can never silently switch which implementation is tested.
+`CHAOS_TARGET` picks `chaos/targets/<target>.env.sh`, which is applied AFTER `.env`, so `.env` cannot switch which implementation is tested. The Spring target file also overrides `DATABASE_URL`, `WEBHOOK_URL` and `RECONCILE_CMD`; the Next.js target only defaults `RECONCILE_CMD`, so a `WEBHOOK_URL`/`RECONCILE_CMD` set in `.env` would still apply there.
 Single scenario: `chaos/tamper.sh`. Scenarios use their own `chaos_<run>_*` users and Stripe customers and clean them up afterwards.
 
 ## Implementation-agnostic contract
@@ -37,7 +37,7 @@ The harness refuses to run unless the key is a Stripe **test** key and `DATABASE
 - Correct ordering in the out-of-order scenario comes from the worker **re-fetching the latest subscription from Stripe**, not from re-sequencing payloads; `event_clock_not_regressed` is the check that the compare-and-set guard also held.
 - Duplicate delivery is proven by database effects (one row, `attempts = 1`, nothing rewritten), not by a response flag, so the same check works on any implementation.
 - "Missed webhook" creates the subscription through the API rather than the hosted Checkout page; the Checkout path is not exercised here.
-- The renewal scenario waits on Stripe to process test-clock advances. Its first Spring Boot run timed out at the 120s wait for `past_due`; a rerun passed with the same code (Stripe-side latency, no application error was logged). Treat a single timeout there as a rerun candidate, not a verdict.
+- The renewal scenario waits on Stripe to process test-clock advances. Its first Spring Boot run timed out at the 120s wait for `past_due`; a rerun of that scenario finished `PASS*` (the same verdict as on Next.js) with the same code (Stripe-side latency; no application error was logged). The failed run's result file was overwritten by the rerun, so only this note records it. Treat a single timeout there as a rerun candidate, not a verdict.
 - The renewal scenario judges access by comparing the stored `valid_until` to the test clock (the app's own check uses the wall clock). The app's clock-based expiry is covered by `nextjs/test` unit/integration tests, not by this scenario.
 - Duplicate/out-of-order/tamper use **harness-signed replay** of real events, not `stripe events resend` (that needs a registered endpoint; only `stripe listen` is used here).
 - The renewal-failure test-clock timestamps are simulated time, so access is checked against the clock (`valid_until > clock`), not the wall clock.

@@ -8,7 +8,7 @@ Same tables and webhook behaviour as the Next.js implementation: see [../docs/ap
 docker compose up -d postgres                       # from the repo root (set POSTGRES_PORT if 5432 is taken)
 # create the app's own database once:
 docker compose exec postgres psql -U pagemint -d postgres -c "create database pagemint_spring"
-export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:55432/pagemint_spring
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/pagemint_spring   # use your POSTGRES_PORT
 export STRIPE_SECRET_KEY=sk_test_...   STRIPE_WEBHOOK_SECRET=whsec_...   # TEST mode only
 export STRIPE_PRICE_PRO_MONTHLY=price_... STRIPE_PRICE_PRO_YEARLY=price_... STRIPE_PRICE_TEAM_SEAT=price_...
 export JWT_SECRET=<at least 32 random bytes>  ADMIN_EMAILS=you@example.com

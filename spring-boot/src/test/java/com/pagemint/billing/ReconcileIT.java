@@ -188,6 +188,32 @@ class ReconcileIT extends IntegrationTestBase {
     }
 
     @Test
+    void driftItemsAlwaysCarryStripeSubscriptionIdAndUserIdEvenWhenNull() throws Exception {
+        stripe.put(FakeStripe.sub("sub_1", "cus_1", "active"));
+        run();
+        jdbc.update("update entitlements set plan='free', valid_until=null where user_id='u1'");
+        var item = mapper.readTree(mapper.writeValueAsString(run())).get("drift").get(0);
+        assertThat(item.get("kind").asText()).isEqualTo("entitlement_stale");
+        assertThat(item.has("stripeSubscriptionId")).isTrue(); // explicit null, like the Next.js report
+        assertThat(item.get("stripeSubscriptionId").isNull()).isTrue();
+        assertThat(item.get("userId").asText()).isEqualTo("u1");
+    }
+
+    @Test
+    void aNonGatewayErrorWhileConfirmingAnOrphanDoesNotAbortTheRun() {
+        stripe.put(FakeStripe.sub("sub_1", "cus_1", "active"));
+        stripe.put(FakeStripe.sub("sub_2", "cus_1", "active"));
+        run();
+        stripe.remove("sub_1"); // will be checked as a possible orphan...
+        stripe.failRetrieveId = "sub_1";
+        stripe.failRetrieveWith = new IllegalStateException("subscription sub_1 has no items"); // ...and blows up
+        stripe.put(FakeStripe.sub("sub_2", "cus_1", "canceled")); // a genuine drift elsewhere
+        ReconcileReport r = run();
+        assertThat(r.drift().stream().anyMatch(d -> "orphan".equals(d.kind()) && "failed".equals(d.action()))).isTrue();
+        assertThat(r.drift().stream().anyMatch(d -> "sub_2".equals(d.stripeSubscriptionId()) && "repaired".equals(d.action()))).isTrue();
+    }
+
+    @Test
     void twoOverlappingRunsCannotBothProceed() throws Exception {
         CountDownLatch inside = new CountDownLatch(1), release = new CountDownLatch(1);
         var t = new Thread(() -> reconcile.withLock(() -> {

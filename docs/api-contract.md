@@ -31,7 +31,9 @@ Same drift kinds (`missing_in_db`, `field_mismatch`, `entitlement_stale`, `orpha
 | Next.js | `npm --prefix nextjs run reconcile` | JSON at `$RECONCILE_REPORT_PATH` (default `reconcile-report.json`) |
 | Spring | `java -jar spring-boot/target/pagemint-billing.jar --reconcile` | same |
 
-Report shape (camelCase): `runId, trigger, startedAt, finishedAt, complete, scanned, counts{inSync,repaired,failed,skipped,reported}, circuitBreakerTripped, drift[{stripeSubscriptionId,userId,kind,fields?,action,error?}]`.
+Report shape (camelCase): `runId, trigger, startedAt, finishedAt, complete, scanned, counts{inSync,repaired,failed,skipped,reported}, circuitBreakerTripped, drift[{stripeSubscriptionId,userId,kind,fields?,action,error?}]`. `stripeSubscriptionId` and `userId` are always present (explicit `null` for e.g. `entitlement_stale`); `fields` and `error` are omitted when empty.
+
+Known, intentional differences: Spring's queue does not count a crashed (lease-expired) attempt as a retry, so a job that keeps crashing the JVM would be re-run indefinitely (pg-boss counts it); and in the rare reconcile path where a row the listing missed has drifted for an unmapped customer, Spring reports `skipped` where Next.js reports `failed`.
 
 ## HTTP API (Spring minimum scope)
 Bearer JWT (HS256, `sub` = user id, `email` claim for admin); tokens come from your identity provider.

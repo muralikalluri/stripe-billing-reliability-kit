@@ -21,7 +21,10 @@ public record ReconcileReport(
     /** kind: missing_in_db | field_mismatch | entitlement_stale | orphan; action: repaired | failed | skipped | reported */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record DriftItem(
-            String stripeSubscriptionId, String userId, String kind, List<String> fields, String action, String error) {
+            // Always present (explicit null), like the Next.js report; the contract lists both as required.
+            @JsonInclude(JsonInclude.Include.ALWAYS) String stripeSubscriptionId,
+            @JsonInclude(JsonInclude.Include.ALWAYS) String userId,
+            String kind, List<String> fields, String action, String error) {
 
         DriftItem withAction(String newAction, String newError) {
             return new DriftItem(stripeSubscriptionId, userId, kind, fields, newAction, newError);

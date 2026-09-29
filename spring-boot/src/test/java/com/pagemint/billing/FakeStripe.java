@@ -22,6 +22,8 @@ public class FakeStripe implements StripeGateway {
     public volatile int listCalls = 0;
     public volatile int retrieveCalls = 0;
     public volatile String eventJson = "{}";
+    public volatile String failRetrieveId;              // retrieve of this id throws failRetrieveWith
+    public volatile RuntimeException failRetrieveWith;
 
     public void reset() {
         subs.clear();
@@ -30,6 +32,8 @@ public class FakeStripe implements StripeGateway {
         failListOnCall = -1;
         listCalls = 0;
         retrieveCalls = 0;
+        failRetrieveId = null;
+        failRetrieveWith = null;
     }
 
     public static SubscriptionData sub(String id, String customer, String status) {
@@ -57,6 +61,7 @@ public class FakeStripe implements StripeGateway {
     @Override
     public SubscriptionData retrieveSubscription(String id) {
         retrieveCalls++;
+        if (id.equals(failRetrieveId) && failRetrieveWith != null) throw failRetrieveWith;
         Long d = delays.get(id);
         if (d != null) {
             try { Thread.sleep(d); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }

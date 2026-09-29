@@ -2,7 +2,7 @@ spring:
   main:
     banner-mode: "off"
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:55432/pagemint_spring}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/pagemint_spring}
     username: ${POSTGRES_USER:pagemint}
     password: ${POSTGRES_PASSWORD:pagemint_local_only}
     hikari:

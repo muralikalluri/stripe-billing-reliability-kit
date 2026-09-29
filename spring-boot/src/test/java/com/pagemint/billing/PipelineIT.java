@@ -56,9 +56,9 @@ class PipelineIT extends IntegrationTestBase {
         postSigned(checkoutEvent("evt_1", "sub_1", 100));
         worker.runOnce();
         jdbc.update("insert into event_jobs (event_id, payload) values ('evt_1', '{\"id\":\"evt_1\",\"type\":\"checkout.session.completed\",\"created\":100,\"data\":{\"object\":{\"subscription\":\"sub_1\"}}}'::jsonb)");
-        worker.runOnce(); // a re-run (e.g. lease expired after a crash) is a no-op
+        assertThat(worker.runOnce()).isEqualTo(1); // a re-run (e.g. lease expired after a crash) is a no-op
         assertThat(count("select count(*) from subscriptions")).isEqualTo(1);
-        assertThat(event("evt_1")).containsEntry("attempts", 1);
+        assertThat(event("evt_1")).containsEntry("attempts", 1).containsEntry("status", "processed");
     }
 
     @Test

@@ -160,10 +160,12 @@ public class ReconcileService {
                     List<String> fields = diff(row, sub);
                     if (fields.isEmpty()) { inSync++; continue; }
                     drift.add(repair(new DriftItem(sub.id(), row.userId(), "field_mismatch", fields, "reported", null), tripped));
-                } catch (GatewayException e) {
-                    // Reported, never auto-revoked: a human decides.
+                } catch (RuntimeException e) {
+                    // One bad row never aborts the run. A missing subscription is reported, never auto-revoked:
+                    // a human decides. Anything else is recorded as failed.
                     DriftItem orphan = new DriftItem(row.stripeId(), row.userId(), "orphan", null, "reported", null);
-                    drift.add("resource_missing".equals(e.code()) ? orphan : orphan.withAction("failed", e.getMessage()));
+                    boolean missing = e instanceof GatewayException g && "resource_missing".equals(g.code());
+                    drift.add(missing ? orphan : orphan.withAction("failed", e.getMessage()));
                 }
             }
         }
