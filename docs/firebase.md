@@ -19,9 +19,8 @@ import { onRequest } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);              // TEST key until sign-off
-
 export const stripeWebhook = onRequest({ secrets: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] }, async (req, res) => {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);            // TEST key until sign-off; secrets are only available inside the handler
   const sig = req.headers["stripe-signature"];
   if (typeof sig !== "string") { res.status(400).send("missing signature"); return; }
   let event: Stripe.Event;
@@ -46,8 +45,8 @@ export const stripeWebhook = onRequest({ secrets: ["STRIPE_SECRET_KEY", "STRIPE_
 
 ## Sync (the part that differs most)
 ```ts
-await db.runTransaction(async (tx) => {
-  const sub = await stripe.subscriptions.retrieve(subId);               // latest state, never the event payload
+const sub = await stripe.subscriptions.retrieve(subId);             // latest state, never the event payload; fetched BEFORE the transaction
+await db.runTransaction(async (tx) => {                                 // (transactions retry on contention, so keep network calls out of them)
   const ref = db.doc(`subscriptions/${sub.id}`);
   const cur = await tx.get(ref);
   if (cur.exists && cur.data()!.updatedFromEventCreated > event.created) return;   // stale: ignore
@@ -60,12 +59,17 @@ Firestore transactions retry on contention, which replaces the advisory locks us
 
 ## Security rules
 ```
-match /entitlements/{uid} { allow read: if request.auth.uid == uid; allow write: if false; }
-match /{document=**} { allow read, write: if false; }   // webhook_events, jobs, subscriptions: Admin SDK only
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /entitlements/{uid} { allow read: if request.auth != null && request.auth.uid == uid; allow write: if false; }
+    match /{document=**} { allow read, write: if false; }   // webhook_events, jobs, subscriptions: Admin SDK only
+  }
+}
 ```
 
 ## Watch out for
 - `req.body` is already parsed by the functions framework; using it for verification fails. Use `req.rawBody`.
 - 1 write/second sustained on a single document is Firestore's soft limit; per-subscription documents are fine, a global counter document is not.
-- Cloud Functions may run an invocation twice; the `create()` guard and idempotent sync cover this.
+- Event-triggered functions (e.g. an `onDocumentCreated` worker) can be delivered more than once; the `create()` guard and the idempotent sync cover this. Stripe itself can also deliver the same webhook to the HTTP function again.
 - Test-clock subscriptions are hidden from the global Stripe list: list per known customer in reconcile.

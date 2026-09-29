@@ -3,6 +3,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { resultsTable } from "../scripts/render-readme.mjs";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -35,26 +36,7 @@ function reproBlock() {
   ].join("\n");
 }
 
-function chaosBlock() {
-  const dir = resolve(root, "chaos/results");
-  if (!existsSync(dir)) return "_No chaos results yet._";
-  const targets = readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort();
-  const data = {};
-  for (const t of targets) {
-    data[t] = {};
-    for (const f of readdirSync(resolve(dir, t)).filter((x) => x.endsWith(".json"))) {
-      const r = JSON.parse(readFileSync(resolve(dir, t, f), "utf8"));
-      data[t][r.scenario] = r;
-    }
-  }
-  const titles = {};
-  for (const t of targets) for (const [k, r] of Object.entries(data[t])) titles[k] = r.title;
-  const lines = [`| Scenario | ${targets.map((t) => `\`${t}\``).join(" | ")} |`, `|---|${targets.map(() => "---").join("|")}|`];
-  for (const k of ORDER.filter((k) => titles[k])) {
-    lines.push(`| ${titles[k]} | ${targets.map((t) => (data[t][k] ? ICON[data[t][k].verdict] ?? data[t][k].verdict : "not run")).join(" | ")} |`);
-  }
-  return lines.join("\n");
-}
+const chaosBlock = () => resultsTable();
 
 const BLOCKS = { diff: diffBlock, repro: reproBlock, chaos: chaosBlock };
 const FILES = ["FIX_REPORT_duplicate-credits.md", "WEBHOOK_HARDENING_REPORT.md", "SUBSCRIPTIONS_IMPLEMENTATION_HANDOVER.md"];

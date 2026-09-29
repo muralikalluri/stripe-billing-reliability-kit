@@ -38,5 +38,7 @@ Live results from the kit's failure-injection scenarios against Stripe test mode
 | Out-of-order delivery (updated before created) | PASS | PASS |
 | Missed webhook (listener down while the customer pays) | PASS | PASS |
 | Tampered payload | PASS | PASS |
-| Renewal failure (test clock + failing card) | PASS* | PASS* |
+| Renewal failure (test clock + failing card) | PASS* | PASS* (latest of 3 runs; 2 FAIL) |
 <!-- /generated -->
+
+`PASS*` = every check passed, but the account's Stripe retry setting ended the subscription as `canceled` instead of `unpaid` (access is removed either way). A cell that mentions FAIL runs shows the latest run and how many recorded runs failed; see [`docs/chaos.md`](../docs/chaos.md) for every check.

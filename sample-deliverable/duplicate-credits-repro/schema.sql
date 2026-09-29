@@ -1,4 +1,4 @@
--- Fictional client "NimbusNotes": a note-taking SaaS that sells credit packs. Not real data.
+-- Fictional client "Acme Notes": a note-taking SaaS that sells credit packs. Not real data.
 CREATE TABLE accounts (
   id text PRIMARY KEY,
   stripe_customer_id text UNIQUE NOT NULL,

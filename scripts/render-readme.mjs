@@ -41,6 +41,7 @@ export function resultsTable() {
   return lines.join("\n");
 }
 
+function main() {
 const path = resolve(root, "README.md");
 const before = readFileSync(path, "utf8");
 const after = before.replace(/<!-- chaos:begin -->[\s\S]*?<!-- chaos:end -->/, `<!-- chaos:begin -->\n${resultsTable()}\n<!-- chaos:end -->`);
@@ -51,3 +52,6 @@ if (process.argv.includes("--check")) {
   writeFileSync(path, after);
   console.log("updated README.md results table");
 }
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) main();

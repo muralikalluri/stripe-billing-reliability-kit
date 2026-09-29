@@ -29,7 +29,7 @@ export function render(): string {
     for (const r of results) out.push(`| ${esc(r.title)} | ${ICON[r.verdict] ?? r.verdict} | ${esc(r.delivery_mode)} | \`${r.git_sha}\` | ${r.finished_at} |`);
     out.push("");
     if (history.length) {
-      out.push("Recorded runs (every run since history tracking began; the table above shows the latest):", "", "| Scenario | Runs | PASS | PASS* | FAIL |", "|---|---|---|---|---|");
+      out.push("Recorded runs (all runs in `history.jsonl`; the file was reset once during development, so earlier runs are not counted; the table above shows the latest):", "", "| Scenario | Runs | PASS | PASS* | FAIL |", "|---|---|---|---|---|");
       for (const r of results) {
         const h = history.filter((x) => x.scenario === r.scenario);
         const n = (v: string) => h.filter((x) => x.verdict === v).length;

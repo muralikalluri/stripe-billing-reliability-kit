@@ -27,16 +27,16 @@ Atomic "insert event and enqueue" as one call (so a failure leaves no orphan row
 
 ```sql
 create or replace function ingest_stripe_event(p_id text, p_type text, p_payload jsonb)
-returns boolean language plpgsql security definer as $$
-declare inserted boolean;
+returns boolean language plpgsql security definer set search_path = '' as $$
+declare n integer;
 begin
-  insert into webhook_events (event_id, type) values (p_id, p_type)
+  insert into public.webhook_events (event_id, type) values (p_id, p_type)
     on conflict (event_id) do nothing;
-  get diagnostics inserted = row_count;            -- 1 when this delivery won
-  if inserted then
+  get diagnostics n = row_count;                   -- 1 when this delivery won
+  if n = 1 then
     perform pgmq.send('stripe_events', p_payload); -- or insert into your own jobs table
   end if;
-  return inserted;
+  return n = 1;
 end $$;
 revoke all on function ingest_stripe_event from public, anon, authenticated;
 ```
@@ -69,7 +69,7 @@ Deploy with `--no-verify-jwt` for this one function (Stripe does not send a Supa
 
 ## Worker and reconcile
 - The worker function reads a message, then does exactly what `syncSubscription` does: `stripe.subscriptions.retrieve`, a compare-and-set upsert, `pg_advisory_xact_lock(hashtext(...))` per subscription and per user, then recomputes `entitlements` with **one** shared `deriveEntitlement` (keep it in a single module used by the worker, reconcile and any success-page endpoint). Port the policy constants from [state-machine.md](state-machine.md); do not re-invent them.
-- Nightly reconcile: `select cron.schedule('reconcile', '0 3 * * *', $$select net.http_post(url := '.../functions/v1/reconcile', headers := ...)$$);`. List subscriptions from Stripe (and per known customer, because test-clock subscriptions are hidden from the global list), repair through the same sync, and store the report in `reconcile_runs`.
+- Nightly reconcile: `select cron.schedule('reconcile', '0 3 * * *', $$select net.http_post(url := '.../functions/v1/reconcile', headers := ...)$$);`. Read the credential for `headers` from Supabase Vault; do not paste a service-role key into the `cron.job` text. List subscriptions from Stripe (and per known customer, because test-clock subscriptions are hidden from the global list), repair through the same sync, and store the report in `reconcile_runs`.
 - Success page: poll a function that returns `select plan from entitlements where user_id = auth.uid()`; never read the checkout `session_id` from the URL to grant anything.
 
 ## Watch out for

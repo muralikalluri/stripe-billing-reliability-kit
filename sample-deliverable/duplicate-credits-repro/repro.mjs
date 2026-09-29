@@ -13,12 +13,12 @@ const DELIVERIES = 5;
 const event = (n) => ({
   id: "evt_repro_1", // the SAME event every time: a retry / replay
   type: "invoice.paid",
-  data: { object: { id: "in_repro_1", customer: "cus_nimbus_1" } },
+  data: { object: { id: "in_repro_1", customer: "cus_acme_1" } },
 });
 
 async function scenario(pool, schema, handler, mode) {
   await pool.query(`truncate ${schema}.credit_ledger, ${schema}.accounts cascade`);
-  await pool.query(`insert into ${schema}.accounts (id, stripe_customer_id) values ('acct_1','cus_nimbus_1')`);
+  await pool.query(`insert into ${schema}.accounts (id, stripe_customer_id) values ('acct_1','cus_acme_1')`);
   if (mode === "sequential") for (let i = 0; i < DELIVERIES; i++) await handler.handleInvoicePaid(pool, schema, event(i));
   else await Promise.all(Array.from({ length: DELIVERIES }, (_, i) => handler.handleInvoicePaid(pool, schema, event(i))));
   const balance = (await pool.query(`select balance from ${schema}.accounts`)).rows[0].balance;

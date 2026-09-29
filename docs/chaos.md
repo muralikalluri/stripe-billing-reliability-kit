@@ -12,7 +12,7 @@
 | Tampered payload | PASS | harness_signed_replay | `6dd47dc` | 2026-09-29T19:52:30.639Z |
 | Renewal failure (test clock + failing card) | PASS* | stripe listen (real forwarded events) | `6dd47dc` | 2026-09-29T20:00:47.447Z |
 
-Recorded runs (every run since history tracking began; the table above shows the latest):
+Recorded runs (all runs in `history.jsonl`; the file was reset once during development, so earlier runs are not counted; the table above shows the latest):
 
 | Scenario | Runs | PASS | PASS* | FAIL |
 |---|---|---|---|---|
@@ -99,7 +99,7 @@ Verdict: **PASS***
 | Tampered payload | PASS | harness_signed_replay | `6dd47dc` | 2026-09-29T19:35:41.349Z |
 | Renewal failure (test clock + failing card) | PASS* | stripe listen (real forwarded events) | `6dd47dc` | 2026-09-29T19:51:15.109Z |
 
-Recorded runs (every run since history tracking began; the table above shows the latest):
+Recorded runs (all runs in `history.jsonl`; the file was reset once during development, so earlier runs are not counted; the table above shows the latest):
 
 | Scenario | Runs | PASS | PASS* | FAIL |
 |---|---|---|---|---|

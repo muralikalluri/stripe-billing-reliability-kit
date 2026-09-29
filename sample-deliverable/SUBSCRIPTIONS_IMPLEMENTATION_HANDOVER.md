@@ -55,7 +55,7 @@ Results of the five failure scenarios against Stripe test mode, per implementati
 | Out-of-order delivery (updated before created) | PASS | PASS |
 | Missed webhook (listener down while the customer pays) | PASS | PASS |
 | Tampered payload | PASS | PASS |
-| Renewal failure (test clock + failing card) | PASS* | PASS* |
+| Renewal failure (test clock + failing card) | PASS* | PASS* (latest of 3 runs; 2 FAIL) |
 <!-- /generated -->
 
 `PASS*` means all checks passed but the account's retry setting ended the subscription as `canceled` instead of `unpaid`; access is removed either way, but the `unpaid` path itself was not exercised.
