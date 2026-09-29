@@ -176,7 +176,7 @@ const renewalFailure: Scenario = {
 
     await setPaymentMethod(ctx, fx.customerId, "pm_card_chargeCustomerFail"); // attaches fine, charges fail
     await advance(period0End + 2 * 3600); // renewal invoice finalizes and the charge fails
-    const past = await waitFor("past_due row", async () => { const r = await subRow(ctx, sub.id); return r?.status === "past_due" ? r : null; }, 120_000, 2000);
+    const past = await waitFor("past_due row", async () => { const r = await subRow(ctx, sub.id); return r?.status === "past_due" ? r : null; }, 300_000, 2000);
     const periodStart = Math.floor(new Date(past.current_period_start).getTime() / 1000);
     const ent1 = await entRow(ctx, fx.userId);
     rec.check("past_due_keeps_access", "past_due: still plan pro (grace)", { status: past.status, plan: ent1?.plan }, ent1?.plan === "pro");

@@ -22,8 +22,21 @@ export function render(): string {
     const results = files.map((f) => JSON.parse(readFileSync(resolve(resultsDir, target, f), "utf8")));
     results.sort((a, b) => ORDER.indexOf(a.scenario) - ORDER.indexOf(b.scenario));
     out.push(`## Target: \`${target}\``, "", "| Scenario | Verdict | Delivery | Commit | Run |", "|---|---|---|---|---|");
+    const historyPath = resolve(resultsDir, target, "history.jsonl");
+    const history = existsSync(historyPath)
+      ? readFileSync(historyPath, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l))
+      : [];
     for (const r of results) out.push(`| ${esc(r.title)} | ${ICON[r.verdict] ?? r.verdict} | ${esc(r.delivery_mode)} | \`${r.git_sha}\` | ${r.finished_at} |`);
     out.push("");
+    if (history.length) {
+      out.push("Recorded runs (every run since history tracking began; the table above shows the latest):", "", "| Scenario | Runs | PASS | PASS* | FAIL |", "|---|---|---|---|---|");
+      for (const r of results) {
+        const h = history.filter((x) => x.scenario === r.scenario);
+        const n = (v: string) => h.filter((x) => x.verdict === v).length;
+        if (h.length) out.push(`| ${esc(r.title)} | ${h.length} | ${n("pass")} | ${n("precondition_violated")} | ${n("fail")} |`);
+      }
+      out.push("");
+    }
     for (const r of results) {
       out.push(`### ${r.title}`, "", `Verdict: **${ICON[r.verdict] ?? r.verdict}**`, "");
       if (r.precondition_note) out.push(`> \`PASS*\`: ${esc(r.precondition_note)}`, "");

@@ -1,6 +1,6 @@
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
@@ -223,7 +223,14 @@ export async function dumpDiagnostics(ctx: Ctx, rec: Recorder) {
     d.stripe_subscriptions = [];
     for (const c of ctx.tracked.customerIds) {
       const subs = await ctx.stripe.subscriptions.list({ customer: c, status: "all" });
-      (d.stripe_subscriptions as unknown[]).push(...subs.data.map((s) => ({ id: s.id, status: s.status, latest_invoice: s.latest_invoice })));
+      for (const s of subs.data) {
+        const invId = typeof s.latest_invoice === "string" ? s.latest_invoice : s.latest_invoice?.id;
+        const inv = invId ? await ctx.stripe.invoices.retrieve(invId) : null;
+        (d.stripe_subscriptions as unknown[]).push({
+          id: s.id, status: s.status,
+          latest_invoice: inv && { id: inv.id, status: inv.status, paid: inv.status === "paid", attempt_count: inv.attempt_count, auto_advance: inv.auto_advance, next_payment_attempt: inv.next_payment_attempt, created: inv.created },
+        });
+      }
     }
     d.test_clocks = [];
     for (const id of ctx.tracked.clockIds) {
@@ -282,5 +289,7 @@ export function writeResult(ctx: Ctx, scenario: string, rec: Recorder, meta: { s
   const dir = resolve(ROOT, "chaos/results", ctx.target);
   mkdirSync(dir, { recursive: true });
   writeFileSync(resolve(dir, `${scenario}.json`), text + "\n");
+  // Every run is appended, so pass rates in the docs come from data, not memory.
+  appendFileSync(resolve(dir, "history.jsonl"), JSON.stringify({ scenario, run_id: ctx.runId, verdict: result.verdict, git_sha: gitSha, finished_at: result.finished_at }) + "\n");
   return result.verdict;
 }
