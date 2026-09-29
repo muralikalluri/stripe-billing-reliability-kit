@@ -37,6 +37,8 @@ export interface Ctx {
   reconcileCmd: string;
   tracked: { eventIds: Set<string>; customerIds: Set<string>; clockIds: Set<string>; userIds: Set<string> };
   listener?: ChildProcess;
+  listenerLog?: { text: string };
+  startedAt: Date;
 }
 
 const sha = (s: string) => createHash("sha256").update(s).digest("hex").slice(0, 12);
@@ -62,6 +64,7 @@ export function loadCtx(): Ctx {
     priceId,
     reconcileCmd: process.env.RECONCILE_CMD ?? "npm --prefix nextjs run --silent reconcile",
     tracked: { eventIds: new Set(), customerIds: new Set(), clockIds: new Set(), userIds: new Set() },
+    startedAt: new Date(),
   };
 }
 
@@ -176,7 +179,8 @@ export async function startListener(ctx: Ctx): Promise<void> {
   });
   ctx.listener = proc;
   let out = "";
-  const collect = (d: Buffer) => (out += d.toString());
+  ctx.listenerLog = { text: "" };
+  const collect = (d: Buffer) => { out += d.toString(); ctx.listenerLog!.text = out; };
   proc.stdout!.on("data", collect);
   proc.stderr!.on("data", collect);
   await waitFor("stripe listen ready", async () => (/Ready!/.test(out) ? out : null), 30_000, 300);
@@ -202,6 +206,35 @@ export function runReconcile(ctx: Ctx): ReconcileReport {
   const report = JSON.parse(readFileSync(path, "utf8")) as ReconcileReport;
   execFileSync("rm", ["-f", path]);
   return report;
+}
+
+// ---------- diagnostics (only on failure) ----------
+/** What the system and Stripe looked like when a scenario failed: enough to tell "events never arrived" from "arrived, no effect". */
+export async function dumpDiagnostics(ctx: Ctx, rec: Recorder) {
+  const d: Record<string, unknown> = {};
+  try {
+    const users = [...ctx.tracked.userIds];
+    d.webhook_events_since_start = (await ctx.pool.query(
+      "select event_id, type, status, attempts, error, received_at, processed_at from webhook_events where received_at >= $1 order by received_at",
+      [ctx.startedAt])).rows;
+    d.subscriptions = (await ctx.pool.query(
+      "select stripe_subscription_id, status, current_period_start, current_period_end, updated_from_event_created from subscriptions where user_id = any($1)", [users])).rows;
+    d.entitlements = (await ctx.pool.query("select plan, valid_until from entitlements where user_id = any($1)", [users])).rows;
+    d.stripe_subscriptions = [];
+    for (const c of ctx.tracked.customerIds) {
+      const subs = await ctx.stripe.subscriptions.list({ customer: c, status: "all" });
+      (d.stripe_subscriptions as unknown[]).push(...subs.data.map((s) => ({ id: s.id, status: s.status, latest_invoice: s.latest_invoice })));
+    }
+    d.test_clocks = [];
+    for (const id of ctx.tracked.clockIds) {
+      const c = await ctx.stripe.testHelpers.testClocks.retrieve(id);
+      (d.test_clocks as unknown[]).push({ id, status: c.status, frozen_time: c.frozen_time });
+    }
+    d.listener_output_tail = (ctx.listenerLog?.text ?? "").replace(/whsec_[A-Za-z0-9]+/g, "[scrubbed]").split("\n").slice(-40);
+  } catch (e) {
+    d.diagnostics_error = e instanceof Error ? e.message : String(e);
+  }
+  rec.evidence.diagnostics_on_failure = d;
 }
 
 // ---------- cleanup ----------

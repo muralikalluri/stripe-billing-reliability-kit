@@ -1,5 +1,5 @@
 import { SCENARIOS } from "./scenarios.js";
-import { cleanup, loadCtx, Recorder, writeResult } from "./lib.js";
+import { cleanup, dumpDiagnostics, loadCtx, Recorder, writeResult } from "./lib.js";
 
 const wanted = process.argv[2] ?? "all";
 const list = wanted === "all" ? SCENARIOS : SCENARIOS.filter((s) => s.name === wanted);
@@ -18,6 +18,7 @@ for (const s of list) {
     await s.run(ctx, rec);
   } catch (e) {
     rec.check("scenario_completed", "scenario ran to completion", e instanceof Error ? e.message : String(e), false);
+    await dumpDiagnostics(ctx, rec);
   } finally {
     await cleanup(ctx).catch((e) => console.error("cleanup error:", e instanceof Error ? e.message : e));
   }
