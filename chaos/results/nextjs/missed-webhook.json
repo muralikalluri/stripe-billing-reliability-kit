@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "run_id": "mumsr6ng",
+  "target": "nextjs",
+  "scenario": "missed-webhook",
+  "title": "Missed webhook (listener down while the customer pays)",
+  "git_sha": "95ec19d",
+  "started_at": "2026-09-29T14:53:53.644Z",
+  "finished_at": "2026-09-29T14:54:16.632Z",
+  "delivery_mode": "none (listener stopped; nothing delivered)",
+  "verdict": "pass",
+  "precondition_note": null,
+  "assertions": [
+    {
+      "id": "baseline_no_repairs",
+      "expected": "baseline reconcile repairs nothing (clean environment)",
+      "actual": "0",
+      "pass": true
+    },
+    {
+      "id": "nothing_received",
+      "expected": "Stripe has the events, our DB received none",
+      "actual": "0",
+      "pass": true
+    },
+    {
+      "id": "no_subscription_row",
+      "expected": "no subscription row before reconcile",
+      "actual": "null",
+      "pass": true
+    },
+    {
+      "id": "no_access_before",
+      "expected": "user paid but has NO entitlement (the bug)",
+      "actual": "null",
+      "pass": true
+    },
+    {
+      "id": "one_repair",
+      "expected": "drift report shows exactly 1 repair, for this subscription (missing_in_db)",
+      "actual": "{\"repaired\":1,\"mine\":[{\"stripeSubscriptionId\":\"sub_1UL2PqQ4GjjDgzvf5eotIIiV\",\"userId\":\"chaos_mumsr6ng_missed\",\"kind\":\"missing_in_db\",\"action\":\"repaired\"}]}",
+      "pass": true
+    },
+    {
+      "id": "access_restored",
+      "expected": "entitlement plan = pro after reconcile",
+      "actual": "pro",
+      "pass": true
+    },
+    {
+      "id": "second_run_clean",
+      "expected": "a second reconcile repairs nothing",
+      "actual": "0",
+      "pass": true
+    }
+  ],
+  "evidence": {
+    "stripe_event_ids": [
+      "evt_1UL2PsQ4GjjDgzvfgzOCK7XQ"
+    ],
+    "reconcile": {
+      "counts": {
+        "inSync": 0,
+        "repaired": 1,
+        "failed": 7,
+        "skipped": 0,
+        "reported": 0
+      },
+      "complete": true,
+      "mine": [
+        {
+          "stripeSubscriptionId": "sub_1UL2PqQ4GjjDgzvf5eotIIiV",
+          "userId": "chaos_mumsr6ng_missed",
+          "kind": "missing_in_db",
+          "action": "repaired"
+        }
+      ]
+    }
+  }
+}

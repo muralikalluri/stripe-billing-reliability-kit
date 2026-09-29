@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "run_id": "mumsqovb",
+  "target": "nextjs",
+  "scenario": "duplicate",
+  "title": "Duplicate delivery",
+  "git_sha": "95ec19d",
+  "started_at": "2026-09-29T14:53:30.600Z",
+  "finished_at": "2026-09-29T14:53:42.282Z",
+  "delivery_mode": "harness_signed_replay",
+  "verdict": "pass",
+  "precondition_note": null,
+  "assertions": [
+    {
+      "id": "http_all_200",
+      "expected": "3 deliveries of one event all return 200",
+      "actual": "[200,200,200]",
+      "pass": true
+    },
+    {
+      "id": "one_event_row",
+      "expected": "exactly 1 webhook_events row for the event",
+      "actual": "1",
+      "pass": true
+    },
+    {
+      "id": "processed_once",
+      "expected": "attempts = 1 (processed exactly once)",
+      "actual": "1",
+      "pass": true
+    },
+    {
+      "id": "processed_at_unchanged",
+      "expected": "processed_at unchanged by the duplicates",
+      "actual": "Tue Sep 29 2026 20:23:38 GMT+0530 (India Standard Time)",
+      "pass": true
+    },
+    {
+      "id": "state_not_rewritten",
+      "expected": "subscription row untouched by the duplicates (updated_at unchanged)",
+      "actual": "Tue Sep 29 2026 20:23:38 GMT+0530 (India Standard Time)",
+      "pass": true
+    },
+    {
+      "id": "one_entitlement",
+      "expected": "exactly 1 entitlement, plan pro",
+      "actual": "pro",
+      "pass": true
+    }
+  ],
+  "evidence": {
+    "event_id": "evt_1UL2PTQ4GjjDgzvfwHqIjkHM",
+    "http_statuses": [
+      200,
+      200,
+      200
+    ]
+  }
+}

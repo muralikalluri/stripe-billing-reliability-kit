@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "run_id": "mumsroe0",
+  "target": "nextjs",
+  "scenario": "tamper",
+  "title": "Tampered payload",
+  "git_sha": "95ec19d",
+  "started_at": "2026-09-29T14:54:16.632Z",
+  "finished_at": "2026-09-29T14:54:23.666Z",
+  "delivery_mode": "harness_signed_replay",
+  "verdict": "pass",
+  "precondition_note": null,
+  "assertions": [
+    {
+      "id": "tampered_400",
+      "expected": "body changed after signing -> 400",
+      "actual": "400",
+      "pass": true
+    },
+    {
+      "id": "reindented_400",
+      "expected": "same JSON, different bytes -> 400 (raw body is verified)",
+      "actual": "400",
+      "pass": true
+    },
+    {
+      "id": "wrong_secret_400",
+      "expected": "signed with another secret -> 400",
+      "actual": "400",
+      "pass": true
+    },
+    {
+      "id": "unsigned_400",
+      "expected": "no signature header -> 400",
+      "actual": "400",
+      "pass": true
+    },
+    {
+      "id": "nothing_processed",
+      "expected": "no webhook_events row, no subscription row, no entitlement",
+      "actual": "{\"events\":0,\"sub\":false,\"ent\":false}",
+      "pass": true
+    },
+    {
+      "id": "control_valid_200",
+      "expected": "control: the untouched event is accepted",
+      "actual": "200",
+      "pass": true
+    }
+  ],
+  "evidence": {
+    "http_statuses": {
+      "tampered": 400,
+      "reindented": 400,
+      "wrong_secret": 400,
+      "unsigned": 400
+    }
+  }
+}
