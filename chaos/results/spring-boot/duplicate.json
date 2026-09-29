@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "run_id": "mumyz8uj",
+  "target": "spring-boot",
+  "scenario": "duplicate",
+  "title": "Duplicate delivery",
+  "git_sha": "8674860",
+  "started_at": "2026-09-29T17:48:07.437Z",
+  "finished_at": "2026-09-29T17:48:19.384Z",
+  "delivery_mode": "harness_signed_replay",
+  "verdict": "pass",
+  "precondition_note": null,
+  "assertions": [
+    {
+      "id": "http_all_200",
+      "expected": "3 deliveries of one event all return 200",
+      "actual": "[200,200,200]",
+      "pass": true
+    },
+    {
+      "id": "one_event_row",
+      "expected": "exactly 1 webhook_events row for the event",
+      "actual": "1",
+      "pass": true
+    },
+    {
+      "id": "processed_once",
+      "expected": "attempts = 1 (processed exactly once)",
+      "actual": "1",
+      "pass": true
+    },
+    {
+      "id": "processed_at_unchanged",
+      "expected": "processed_at unchanged by the duplicates",
+      "actual": "2026-09-29T17:48:14.890Z",
+      "pass": true
+    },
+    {
+      "id": "state_not_rewritten",
+      "expected": "subscription row untouched by the duplicates (updated_at unchanged)",
+      "actual": "2026-09-29T17:48:14.347Z",
+      "pass": true
+    },
+    {
+      "id": "one_entitlement",
+      "expected": "exactly 1 entitlement, plan pro",
+      "actual": "pro",
+      "pass": true
+    }
+  ],
+  "evidence": {
+    "event_id": "evt_1UL58SQ4GjjDgzvflIM8UYkh",
+    "http_statuses": [
+      200,
+      200,
+      200
+    ]
+  }
+}

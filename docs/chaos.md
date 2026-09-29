@@ -78,3 +78,80 @@ Verdict: **PASS***
 | `access_before_grace_end` | 1h before grace ends: access | true | PASS |
 | `no_access_after_grace` | 1h after grace ends: NO access (status recorded as evidence) | false | PASS |
 | `final_no_access` | after retries are exhausted: plan free | {"status":"canceled","plan":"free"} | PASS |
+
+## Target: `spring-boot`
+
+| Scenario | Verdict | Delivery | Commit | Run |
+|---|---|---|---|---|
+| Duplicate delivery | PASS | harness_signed_replay | `8674860` | 2026-09-29T17:48:19.384Z |
+| Out-of-order delivery (updated before created) | PASS | harness_signed_replay | `8674860` | 2026-09-29T17:48:35.404Z |
+| Missed webhook (listener down while the customer pays) | PASS | none (listener stopped; nothing delivered) | `8674860` | 2026-09-29T17:49:05.925Z |
+| Tampered payload | PASS | harness_signed_replay | `8674860` | 2026-09-29T17:49:16.386Z |
+| Renewal failure (test clock + failing card) | PASS* | stripe listen (real forwarded events) | `8674860` | 2026-09-29T17:53:47.397Z |
+
+### Duplicate delivery
+
+Verdict: **PASS**
+
+| Check | Expected | Actual | |
+|---|---|---|---|
+| `http_all_200` | 3 deliveries of one event all return 200 | [200,200,200] | PASS |
+| `one_event_row` | exactly 1 webhook_events row for the event | 1 | PASS |
+| `processed_once` | attempts = 1 (processed exactly once) | 1 | PASS |
+| `processed_at_unchanged` | processed_at unchanged by the duplicates | 2026-09-29T17:48:14.890Z | PASS |
+| `state_not_rewritten` | subscription row untouched by the duplicates (updated_at unchanged) | 2026-09-29T17:48:14.347Z | PASS |
+| `one_entitlement` | exactly 1 entitlement, plan pro | pro | PASS |
+
+### Out-of-order delivery (updated before created)
+
+Verdict: **PASS**
+
+| Check | Expected | Actual | |
+|---|---|---|---|
+| `real_order_gap` | created.created < updated.created (a real ordering exists) | [1790704103,1790704111] | PASS |
+| `arrival_order` | updated was received before created | ["2026-09-29T17:48:31.968Z","2026-09-29T17:48:32.490Z"] | PASS |
+| `event_clock_not_regressed` | updated_from_event_created stays at the newer event's created | 1790704111 | PASS |
+| `matches_stripe` | final row equals Stripe (status, cancel_at_period_end) | ["active",true] | PASS |
+| `access_kept` | entitlement plan = pro (still paid until period end) | pro | PASS |
+
+### Missed webhook (listener down while the customer pays)
+
+Verdict: **PASS**
+
+| Check | Expected | Actual | |
+|---|---|---|---|
+| `baseline_clean` | baseline reconcile: nothing repaired, nothing failed, listing complete | {"repaired":0,"failed":0,"complete":true} | PASS |
+| `nothing_received` | Stripe has the events, our DB received none | 0 | PASS |
+| `no_subscription_row` | no subscription row before reconcile | null | PASS |
+| `no_access_before` | user paid but has NO entitlement (the bug) | null | PASS |
+| `one_repair` | drift report shows exactly 1 repair, for this subscription (missing_in_db) | {"repaired":1,"mine":[{"stripeSubscriptionId":"sub_1UL58vQ4GjjDgzvf7VQHulml","userId":"chaos_mumyzufg_missed","kind":"missing_in_db","action":"repaired"}]} | PASS |
+| `access_restored` | entitlement plan = pro after reconcile | pro | PASS |
+| `second_run_clean` | a second reconcile repairs nothing | 0 | PASS |
+
+### Tampered payload
+
+Verdict: **PASS**
+
+| Check | Expected | Actual | |
+|---|---|---|---|
+| `tampered_400` | body changed after signing -> 400 | 400 | PASS |
+| `reindented_400` | same JSON, different bytes -> 400 (raw body is verified) | 400 | PASS |
+| `wrong_secret_400` | signed with another secret -> 400 | 400 | PASS |
+| `unsigned_400` | no signature header -> 400 | 400 | PASS |
+| `nothing_processed` | no webhook_events row, no subscription row, no entitlement | {"events":0,"sub":false,"ent":false} | PASS |
+| `control_valid_200` | control: the untouched event is accepted | 200 | PASS |
+
+### Renewal failure (test clock + failing card)
+
+Verdict: **PASS***
+
+> `PASS*`: final status was "canceled", not "unpaid": set Stripe Dashboard > Billing > Revenue recovery > "mark the subscription as unpaid" to exercise the unpaid path (access is removed either way).
+
+| Check | Expected | Actual | |
+|---|---|---|---|
+| `initial_active` | active, plan pro | {"status":"active","plan":"pro"} | PASS |
+| `past_due_keeps_access` | past_due: still plan pro (grace) | {"status":"past_due","plan":"pro"} | PASS |
+| `grace_anchored_on_period_start` | valid_until = current_period_start + grace | 2026-11-01T17:52:03.000Z | PASS |
+| `access_before_grace_end` | 1h before grace ends: access | true | PASS |
+| `no_access_after_grace` | 1h after grace ends: NO access (status recorded as evidence) | false | PASS |
+| `final_no_access` | after retries are exhausted: plan free | {"status":"canceled","plan":"free"} | PASS |
