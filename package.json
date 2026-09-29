@@ -1,0 +1,15 @@
+{
+  "name": "stripe-billing-reliability-kit",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "seed:stripe": "node scripts/seed-stripe.mjs",
+    "test": "node --test \"scripts/test/*.test.mjs\""
+  },
+  "dependencies": {
+    "stripe": "^18.0.0"
+  }
+}

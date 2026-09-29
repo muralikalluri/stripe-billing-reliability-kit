@@ -1,0 +1,53 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: pagemint
+          POSTGRES_PASSWORD: pagemint_local_only
+          POSTGRES_DB: pagemint
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U pagemint -d pagemint"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Postgres is reachable
+        run: PGPASSWORD=pagemint_local_only psql -h localhost -U pagemint -d pagemint -c "select 1"
+
+  nextjs:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nextjs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: nextjs/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      # Integration tests start Postgres via Testcontainers (Docker is preinstalled on runners).
+      - run: npm test
+      - run: npm run build
+        env:
+          DATABASE_URL: postgres://pagemint:pagemint_local_only@localhost:5432/pagemint
+          STRIPE_SECRET_KEY: sk_test_fixture_not_real
+          STRIPE_WEBHOOK_SECRET: whsec_fixture_not_real
+          AUTH_SECRET: ci-build-only
