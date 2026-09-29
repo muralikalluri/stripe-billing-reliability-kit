@@ -83,11 +83,18 @@ Verdict: **PASS***
 
 | Scenario | Verdict | Delivery | Commit | Run |
 |---|---|---|---|---|
-| Duplicate delivery | PASS | harness_signed_replay | `8674860` | 2026-09-29T17:48:19.384Z |
-| Out-of-order delivery (updated before created) | PASS | harness_signed_replay | `8674860` | 2026-09-29T17:48:35.404Z |
+| Duplicate delivery | PASS | harness_signed_replay | `6eb8411+dirty` | 2026-09-29T19:33:35.362Z |
+| Out-of-order delivery (updated before created) | PASS | harness_signed_replay | `6eb8411+dirty` | 2026-09-29T19:33:54.489Z |
 | Missed webhook (listener down while the customer pays) | PASS | none (listener stopped; nothing delivered) | `8674860` | 2026-09-29T17:49:05.925Z |
 | Tampered payload | PASS | harness_signed_replay | `8674860` | 2026-09-29T17:49:16.386Z |
 | Renewal failure (test clock + failing card) | PASS* | stripe listen (real forwarded events) | `8674860` | 2026-09-29T17:53:47.397Z |
+
+Recorded runs (every run since history tracking began; the table above shows the latest):
+
+| Scenario | Runs | PASS | PASS* | FAIL |
+|---|---|---|---|---|
+| Duplicate delivery | 1 | 1 | 0 | 0 |
+| Out-of-order delivery (updated before created) | 1 | 1 | 0 | 0 |
 
 ### Duplicate delivery
 
@@ -98,8 +105,8 @@ Verdict: **PASS**
 | `http_all_200` | 3 deliveries of one event all return 200 | [200,200,200] | PASS |
 | `one_event_row` | exactly 1 webhook_events row for the event | 1 | PASS |
 | `processed_once` | attempts = 1 (processed exactly once) | 1 | PASS |
-| `processed_at_unchanged` | processed_at unchanged by the duplicates | 2026-09-29T17:48:14.890Z | PASS |
-| `state_not_rewritten` | subscription row untouched by the duplicates (updated_at unchanged) | 2026-09-29T17:48:14.347Z | PASS |
+| `processed_at_unchanged` | processed_at unchanged by the duplicates | 2026-09-29T19:33:30.922Z | PASS |
+| `state_not_rewritten` | subscription row untouched by the duplicates (updated_at unchanged) | 2026-09-29T19:33:30.290Z | PASS |
 | `one_entitlement` | exactly 1 entitlement, plan pro | pro | PASS |
 
 ### Out-of-order delivery (updated before created)
@@ -108,9 +115,9 @@ Verdict: **PASS**
 
 | Check | Expected | Actual | |
 |---|---|---|---|
-| `real_order_gap` | created.created < updated.created (a real ordering exists) | [1790704103,1790704111] | PASS |
-| `arrival_order` | updated was received before created | ["2026-09-29T17:48:31.968Z","2026-09-29T17:48:32.490Z"] | PASS |
-| `event_clock_not_regressed` | updated_from_event_created stays at the newer event's created | 1790704111 | PASS |
+| `real_order_gap` | created.created < updated.created (a real ordering exists) | [1790710419,1790710429] | PASS |
+| `arrival_order` | updated was received before created | ["2026-09-29T19:33:50.138Z","2026-09-29T19:33:51.663Z"] | PASS |
+| `event_clock_not_regressed` | updated_from_event_created stays at the newer event's created | 1790710429 | PASS |
 | `matches_stripe` | final row equals Stripe (status, cancel_at_period_end) | ["active",true] | PASS |
 | `access_kept` | entitlement plan = pro (still paid until period end) | pro | PASS |
 

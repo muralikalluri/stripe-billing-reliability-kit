@@ -4,12 +4,17 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "seed:stripe": "node scripts/seed-stripe.mjs",
-    "test": "node --test \"scripts/test/*.test.mjs\""
+    "test": "node --test \"scripts/test/*.test.mjs\" \"sample-deliverable/**/*.test.mjs\"",
+    "samples:render": "node sample-deliverable/render.mjs",
+    "samples:check": "node sample-deliverable/render.mjs --check"
   },
   "dependencies": {
+    "pg": "^8.23.0",
     "stripe": "^18.0.0"
   }
 }

@@ -1,0 +1,24 @@
+{
+  "deliveries": 5,
+  "creditsPerInvoice": 500,
+  "vulnerable": {
+    "sequential": {
+      "balance": 2500,
+      "ledgerRows": 5
+    },
+    "concurrent": {
+      "balance": 1000,
+      "ledgerRows": 5
+    }
+  },
+  "fixed": {
+    "sequential": {
+      "balance": 500,
+      "ledgerRows": 1
+    },
+    "concurrent": {
+      "balance": 500,
+      "ledgerRows": 1
+    }
+  }
+}

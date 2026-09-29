@@ -26,6 +26,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+        env:
+          DATABASE_URL: postgres://pagemint:pagemint_local_only@localhost:5432/pagemint
+      # The sample deliverables' numbers are generated from result files: fail if they drift.
+      - run: npm run samples:check
       - name: Postgres is reachable
         run: PGPASSWORD=pagemint_local_only psql -h localhost -U pagemint -d pagemint -c "select 1"
 

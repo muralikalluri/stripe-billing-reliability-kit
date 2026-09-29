@@ -1,0 +1,2 @@
+{"scenario":"duplicate","run_id":"mun2qlhu","verdict":"pass","git_sha":"6eb8411+dirty","finished_at":"2026-09-29T19:33:35.362Z"}
+{"scenario":"out-of-order","run_id":"mun2qvia","verdict":"pass","git_sha":"6eb8411+dirty","finished_at":"2026-09-29T19:33:54.489Z"}

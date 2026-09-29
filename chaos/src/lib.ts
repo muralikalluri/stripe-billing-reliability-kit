@@ -266,7 +266,7 @@ export async function cleanup(ctx: Ctx) {
 export function writeResult(ctx: Ctx, scenario: string, rec: Recorder, meta: { startedAt: string; deliveryMode: string; title: string }) {
   const gitSha = (() => {
     try { const h = execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: ROOT }).toString().trim();
-      const dirty = execFileSync("git", ["status", "--porcelain", "--", ":!chaos/results", ":!docs/chaos.md"], { cwd: ROOT }).toString().trim();
+      const dirty = execFileSync("git", ["status", "--porcelain", "--", "nextjs", "spring-boot", "chaos/src", "chaos/targets", "chaos/load-env.sh", ":!chaos/results", ":!docs/chaos.md"], { cwd: ROOT }).toString().trim();
       return dirty ? `${h}+dirty` : h; } catch { return "unknown"; }
   })();
   const result = {
