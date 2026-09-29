@@ -23,7 +23,7 @@ docker compose up -d postgres
 ```bash
 npm ci
 set -a; . ./.env; set +a
-npm run seed:stripe
+npm run --silent seed:stripe
 ```
 Copy the printed `STRIPE_PRICE_*` lines into `.env`. Re-running is safe: prices are found by `lookup_key` (`pro_monthly`, `pro_yearly`, `team_seat_monthly`).
 

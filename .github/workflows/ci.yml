@@ -51,3 +51,20 @@ jobs:
           STRIPE_SECRET_KEY: sk_test_fixture_not_real
           STRIPE_WEBHOOK_SECRET: whsec_fixture_not_real
           AUTH_SECRET: ci-build-only
+
+  chaos:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: chaos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: chaos/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      # Live scenarios need a Stripe test key and run locally; CI only checks that the docs match the committed results.
+      - run: npm run render -- --check

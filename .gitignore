@@ -19,3 +19,5 @@ PROMPTS.md
 *.tsbuildinfo
 next-env.d.ts
 reconcile-report.json
+chaos/.run/
+chaos/results/.reconcile-*

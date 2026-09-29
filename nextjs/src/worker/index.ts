@@ -24,7 +24,10 @@ await boss.work<{ trigger?: "nightly" | "manual" }>(RECONCILE_QUEUE, async (jobs
   }
 });
 // Nightly at 03:00 UTC. Idempotent: re-registering the same schedule is safe.
-await boss.schedule(RECONCILE_QUEUE, "0 3 * * *", { trigger: "nightly" }, { tz: "UTC" });
+// DISABLE_SCHEDULE=1 (used by the chaos harness) keeps a scheduled run from repairing state mid-scenario.
+if (process.env.DISABLE_SCHEDULE !== "1") {
+  await boss.schedule(RECONCILE_QUEUE, "0 3 * * *", { trigger: "nightly" }, { tz: "UTC" });
+}
 console.log(`worker listening on "${EVENT_QUEUE}" and "${RECONCILE_QUEUE}"`);
 
 for (const sig of ["SIGINT", "SIGTERM"] as const) {

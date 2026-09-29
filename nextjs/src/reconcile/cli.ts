@@ -13,7 +13,8 @@ if (!report) {
   console.error("another reconcile run is in progress");
   process.exitCode = 1;
 } else {
-  writeFileSync("reconcile-report.json", JSON.stringify(report, null, 2));
-  console.log(`reconcile: scanned=${report.scanned} repaired=${report.counts.repaired} failed=${report.counts.failed} -> reconcile-report.json`);
+  const path = process.env.RECONCILE_REPORT_PATH ?? "reconcile-report.json";
+  writeFileSync(path, JSON.stringify(report, null, 2));
+  console.log(`reconcile: scanned=${report.scanned} repaired=${report.counts.repaired} failed=${report.counts.failed} -> ${path}`);
 }
 await getPool().end();
