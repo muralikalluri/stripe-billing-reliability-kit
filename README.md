@@ -10,9 +10,9 @@
 
 ## Demo
 
-<!-- The GIF is recorded with VHS and is not committed yet: run `vhs docs/demo/failure-demo.tape`
-     (script in docs/demo/), then replace this note with: ![Failure-injection demo](docs/demo/failure-demo.gif) -->
-_Demo GIF not recorded yet._ Reproduce it with `vhs docs/demo/failure-demo.tape`, or run the scenarios yourself (see [Quickstart](#quickstart)).
+![Failure-injection demo](docs/demo/failure-demo.gif)
+
+Recorded live against Stripe test mode: one event delivered three times gives one effect, a tampered payload is rejected with nothing processed, and a customer who pays while webhooks are down gets access back after a reconcile (exactly one repair). Re-record with `docs/demo/failure-demo.tape` (see its header).
 
 ## Results
 
@@ -125,7 +125,7 @@ See [chaos/README.md](chaos/README.md).
 
 Checked against the MVP scope in `SPEC.md` (M0-M6; M7 was deliberately skipped):
 
-- **Not built:** the Playwright end-to-end test (pricing, checkout with a test card, access granted); Stripe API stubs in CI use in-memory fakes, not `stripe-mock`; the README demo GIF is not recorded (the `vhs` script is in `docs/demo/`).
+- **Not built:** the Playwright end-to-end test (pricing, checkout with a test card, access granted); Stripe API stubs in CI use in-memory fakes, not `stripe-mock`.
 - **Not proven live:** the hosted Checkout purchase and the Customer Portal were never exercised against real Stripe (scenario subscriptions are created through the API), so "a test-mode purchase grants access" is demonstrated through the webhook path, not through the Checkout page. The `unpaid` retry outcome depends on a Stripe Dashboard setting and was not exercised (the account ended subscriptions as `canceled`).
 - **CI:** GitHub Actions has not run on this repository (an account billing block stops the jobs before they start), so the CI badge does not reflect the suites; they were run locally.
 - **Renewal scenario reliability:** it waits on Stripe's test-clock processing and failed on some recorded runs, more often on the Spring target (counts in the Results table and [docs/chaos.md](docs/chaos.md), discussion in [chaos/README.md](chaos/README.md)). "The same scenarios pass on both implementations" is therefore not fully demonstrated.
