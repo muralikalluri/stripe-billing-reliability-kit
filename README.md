@@ -77,6 +77,7 @@ npm ci && npm run --silent seed:stripe   # creates test-mode products/prices; co
 
 **Next.js**
 ```bash
+set -a; . ./.env; set +a                 # the app reads its settings from the environment
 cd nextjs && npm ci && npm run db:migrate
 npm run dev                              # :3000 (DEMO_AUTH=1 enables the insecure demo login, local only)
 npm run worker                           # second terminal
@@ -86,7 +87,8 @@ stripe listen --events checkout.session.completed,customer.subscription.created,
 
 **Tests**
 ```bash
-npm test                                 # seed script + sample repro (repro needs DATABASE_URL)
+set -a; . ./.env; set +a
+npm test                                 # seed script + sample repro (the repro needs DATABASE_URL)
 (cd nextjs && npm run typecheck && npm test)      # Docker: Testcontainers starts Postgres
 (cd spring-boot && mvn test)                      # Docker: Testcontainers
 ```
@@ -119,7 +121,16 @@ See [chaos/README.md](chaos/README.md).
 - **Every scenario's customer lives on a test clock,** so cleanup deletes its subscriptions and reconcile runs stay clean.
 - **Spring uses plain SQL, not JPA,** so the locks and the compare-and-set are explicit; its queue is a transactional outbox with leases instead of pg-boss.
 
-**Limits (what is not proven here):** GitHub Actions has not run on this repository yet (an account billing block stops the jobs before they start), so the CI badge does not reflect the suites, which were run locally; the hosted Checkout purchase and the Customer Portal were not exercised against real Stripe (scenario subscriptions are created through the API); the `unpaid` retry outcome depends on a Dashboard setting and was not exercised; the renewal scenario waits on Stripe's test-clock processing and can time out, more often on the Spring target in the recorded runs (run counts in [docs/chaos.md](docs/chaos.md), discussion in [chaos/README.md](chaos/README.md)), so "the same scenarios pass on both" is not fully demonstrated: read the renewal row in Results; demo authentication is deliberately insecure and local-only; per-seat Team quantity sync and proration are planned later.
+### Status: what is not done or not proven
+
+Checked against the MVP scope in `SPEC.md` (M0-M6; M7 was deliberately skipped):
+
+- **Not built:** the Playwright end-to-end test (pricing, checkout with a test card, access granted); Stripe API stubs in CI use in-memory fakes, not `stripe-mock`; the README demo GIF is not recorded (the `vhs` script is in `docs/demo/`).
+- **Not proven live:** the hosted Checkout purchase and the Customer Portal were never exercised against real Stripe (scenario subscriptions are created through the API), so "a test-mode purchase grants access" is demonstrated through the webhook path, not through the Checkout page. The `unpaid` retry outcome depends on a Stripe Dashboard setting and was not exercised (the account ended subscriptions as `canceled`).
+- **CI:** GitHub Actions has not run on this repository (an account billing block stops the jobs before they start), so the CI badge does not reflect the suites; they were run locally.
+- **Renewal scenario reliability:** it waits on Stripe's test-clock processing and failed on some recorded runs, more often on the Spring target (counts in the Results table and [docs/chaos.md](docs/chaos.md), discussion in [chaos/README.md](chaos/README.md)). "The same scenarios pass on both implementations" is therefore not fully demonstrated.
+- **Deviations from SPEC:** reconcile scans everything because Stripe's subscription list has no `updated` filter; the Spring implementation has no checkout/portal (API, webhook, reconcile and admin only); duplicate delivery is replayed by the harness instead of `stripe events resend`.
+- **Placeholders:** demo authentication (Next.js) is deliberately insecure and local-only; the Spring API expects tokens from your own identity provider. Per-seat Team quantity sync and proration (M7) are planned later.
 
 ## Sample deliverables
 
