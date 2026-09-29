@@ -1,0 +1,7 @@
+{"scenario":"duplicate","run_id":"mun3dsu7","verdict":"pass","git_sha":"6dd47dc","finished_at":"2026-09-29T19:51:38.188Z"}
+{"scenario":"out-of-order","run_id":"mun3e30t","verdict":"pass","git_sha":"6dd47dc","finished_at":"2026-09-29T19:51:57.235Z"}
+{"scenario":"missed-webhook","run_id":"mun3ehpw","verdict":"pass","git_sha":"6dd47dc","finished_at":"2026-09-29T19:52:23.030Z"}
+{"scenario":"tamper","run_id":"mun3f1me","verdict":"pass","git_sha":"6dd47dc","finished_at":"2026-09-29T19:52:30.639Z"}
+{"scenario":"renewal-failure","run_id":"mun3f7hs","verdict":"precondition_violated","git_sha":"6dd47dc","finished_at":"2026-09-29T19:54:29.467Z"}
+{"scenario":"renewal-failure","run_id":"mun3hrfs","verdict":"precondition_violated","git_sha":"6dd47dc","finished_at":"2026-09-29T19:58:56.599Z"}
+{"scenario":"renewal-failure","run_id":"mun3nhg8","verdict":"precondition_violated","git_sha":"6dd47dc","finished_at":"2026-09-29T20:00:47.447Z"}

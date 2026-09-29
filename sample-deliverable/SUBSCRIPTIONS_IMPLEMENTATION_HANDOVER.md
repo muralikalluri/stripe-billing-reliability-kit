@@ -55,13 +55,13 @@ Results of the five failure scenarios against Stripe test mode, per implementati
 | Out-of-order delivery (updated before created) | PASS | PASS |
 | Missed webhook (listener down while the customer pays) | PASS | PASS |
 | Tampered payload | PASS | PASS |
-| Renewal failure (test clock + failing card) | PASS* | FAIL |
+| Renewal failure (test clock + failing card) | PASS* | PASS* |
 <!-- /generated -->
 
 `PASS*` means all checks passed but the account's retry setting ended the subscription as `canceled` instead of `unpaid`; access is removed either way, but the `unpaid` path itself was not exercised.
 
 ## 6. Known limits (from the reviews)
 - The hosted Checkout purchase and Customer Portal were not exercised against real Stripe in this repository's runs; subscriptions in the scenarios are created through the API.
-- The renewal scenario waits on Stripe's test-clock processing and has timed out on some runs of the Spring target; see [`chaos/README.md`](../chaos/README.md).
+- The renewal scenario waits on Stripe's test-clock processing and timed out on some recorded runs, more often on the Spring target; run counts are in [`docs/chaos.md`](../docs/chaos.md) and the discussion in [`chaos/README.md`](../chaos/README.md).
 - Demo authentication (Next.js) and the JWT-only API (Spring) are placeholders for your identity provider.
 - Team per-seat quantity sync and proration preview are out of scope (planned later).

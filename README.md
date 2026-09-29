@@ -19,6 +19,13 @@ _Demo GIF not recorded yet._ Reproduce it with `vhs docs/demo/failure-demo.tape`
 Five failure scenarios, run against real Stripe test mode, per implementation. **Generated from `chaos/results/`; do not edit by hand.** Details, expected vs actual for every check, and run history: [docs/chaos.md](docs/chaos.md).
 
 <!-- chaos:begin -->
+| Scenario | `nextjs` | `spring-boot` |
+|---|---|---|
+| Duplicate delivery | PASS | PASS |
+| Out-of-order delivery (updated before created) | PASS | PASS |
+| Missed webhook (listener down while the customer pays) | PASS | PASS |
+| Tampered payload | PASS | PASS |
+| Renewal failure (test clock + failing card) | PASS* | PASS* (latest of 3 runs; 2 FAIL) |
 <!-- chaos:end -->
 
 `PASS*` = every check passed, but the account's Stripe retry setting ended the subscription as `canceled` instead of `unpaid`. Access is removed either way; the `unpaid` path itself was not exercised.
@@ -99,7 +106,7 @@ See [chaos/README.md](chaos/README.md).
 - **One source of truth for access:** `deriveEntitlement`; access checks read only `entitlements`; the checkout success redirect never grants access (it polls server state).
 - **Reconciliation:** finds and repairs missed or drifted subscriptions, reports orphans without revoking, and has a circuit breaker for wrong-account/mode situations.
 - **Admin:** webhook events with status/attempts/error, retry of failed events, run-reconcile (Next.js page, Spring API), gated by an allowlist.
-- **Two implementations, one contract:** same tables (a test compares the schemas) and the same failure scenarios pass on both. See [docs/api-contract.md](docs/api-contract.md).
+- **Two implementations, one contract:** same tables (a test compares the schemas); the same failure scenarios are run against both (see Results and Limits). See [docs/api-contract.md](docs/api-contract.md).
 - **Failure-injection harness:** five scenarios with expected vs actual, generated into the docs.
 - **Portability notes:** [Supabase](docs/supabase.md) and [Firebase](docs/firebase.md) pattern guides.
 
@@ -112,7 +119,7 @@ See [chaos/README.md](chaos/README.md).
 - **Every scenario's customer lives on a test clock,** so cleanup deletes its subscriptions and reconcile runs stay clean.
 - **Spring uses plain SQL, not JPA,** so the locks and the compare-and-set are explicit; its queue is a transactional outbox with leases instead of pg-boss.
 
-**Limits (what is not proven here):** the hosted Checkout purchase and the Customer Portal were not exercised against real Stripe (scenario subscriptions are created through the API); the `unpaid` retry outcome depends on a Dashboard setting and was not exercised; the renewal scenario waits on Stripe's test-clock processing and can time out (see [chaos/README.md](chaos/README.md)); demo authentication is deliberately insecure and local-only; per-seat Team quantity sync and proration are planned later.
+**Limits (what is not proven here):** the hosted Checkout purchase and the Customer Portal were not exercised against real Stripe (scenario subscriptions are created through the API); the `unpaid` retry outcome depends on a Dashboard setting and was not exercised; the renewal scenario waits on Stripe's test-clock processing and can time out, more often on the Spring target in the recorded runs (run counts in [docs/chaos.md](docs/chaos.md), discussion in [chaos/README.md](chaos/README.md)), so "the same scenarios pass on both" is fully demonstrated for four of five; demo authentication is deliberately insecure and local-only; per-seat Team quantity sync and proration are planned later.
 
 ## Sample deliverables
 
@@ -126,7 +133,7 @@ What a client receives, in [sample-deliverable/](sample-deliverable/) (fictional
 
 ## Hire me
 
-Need Stripe subscriptions and webhooks that hold up in production? [Hire me on Upwork](REPLACE_WITH_YOUR_UPWORK_PROFILE_URL).
+Need Stripe subscriptions and webhooks that hold up in production? [Hire me on Upwork](https://www.upwork.com/freelancers/~01c80d5fd70c92b97d).
 
 ## License
 

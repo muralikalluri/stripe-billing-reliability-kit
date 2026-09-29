@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "run_id": "mumyz8uj",
+  "run_id": "mun2s21m",
   "target": "spring-boot",
   "scenario": "duplicate",
   "title": "Duplicate delivery",
-  "git_sha": "8674860",
-  "started_at": "2026-09-29T17:48:07.437Z",
-  "finished_at": "2026-09-29T17:48:19.384Z",
+  "git_sha": "6dd47dc",
+  "started_at": "2026-09-29T19:34:30.492Z",
+  "finished_at": "2026-09-29T19:34:43.183Z",
   "delivery_mode": "harness_signed_replay",
   "verdict": "pass",
   "precondition_note": null,
@@ -32,13 +32,13 @@
     {
       "id": "processed_at_unchanged",
       "expected": "processed_at unchanged by the duplicates",
-      "actual": "2026-09-29T17:48:14.890Z",
+      "actual": "2026-09-29T19:34:38.900Z",
       "pass": true
     },
     {
       "id": "state_not_rewritten",
       "expected": "subscription row untouched by the duplicates (updated_at unchanged)",
-      "actual": "2026-09-29T17:48:14.347Z",
+      "actual": "2026-09-29T19:34:38.320Z",
       "pass": true
     },
     {
@@ -49,7 +49,7 @@
     }
   ],
   "evidence": {
-    "event_id": "evt_1UL58SQ4GjjDgzvflIM8UYkh",
+    "event_id": "evt_1UL6nPQ4GjjDgzvfGdWRZbTn",
     "http_statuses": [
       200,
       200,

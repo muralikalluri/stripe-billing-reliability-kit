@@ -1,2 +1,7 @@
-{"scenario":"duplicate","run_id":"mun2qlhu","verdict":"pass","git_sha":"6eb8411+dirty","finished_at":"2026-09-29T19:33:35.362Z"}
-{"scenario":"out-of-order","run_id":"mun2qvia","verdict":"pass","git_sha":"6eb8411+dirty","finished_at":"2026-09-29T19:33:54.489Z"}
+{"scenario":"duplicate","run_id":"mun2s21m","verdict":"pass","git_sha":"6dd47dc","finished_at":"2026-09-29T19:34:43.183Z"}
+{"scenario":"out-of-order","run_id":"mun2sbu7","verdict":"pass","git_sha":"6dd47dc","finished_at":"2026-09-29T19:35:05.000Z"}
+{"scenario":"missed-webhook","run_id":"mun2sso9","verdict":"pass","git_sha":"6dd47dc","finished_at":"2026-09-29T19:35:30.905Z"}
+{"scenario":"tamper","run_id":"mun2tcnx","verdict":"pass","git_sha":"6dd47dc","finished_at":"2026-09-29T19:35:41.349Z"}
+{"scenario":"renewal-failure","run_id":"mun2tkq0","verdict":"fail","git_sha":"6dd47dc","finished_at":"2026-09-29T19:41:10.788Z"}
+{"scenario":"renewal-failure","run_id":"mun30n6r","verdict":"fail","git_sha":"6dd47dc","finished_at":"2026-09-29T19:49:36.648Z"}
+{"scenario":"renewal-failure","run_id":"mun3bhek","verdict":"precondition_violated","git_sha":"6dd47dc","finished_at":"2026-09-29T19:51:15.109Z"}

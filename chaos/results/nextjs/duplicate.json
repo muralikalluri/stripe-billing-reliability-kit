@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "run_id": "mumszaro",
+  "run_id": "mun3dsu7",
   "target": "nextjs",
   "scenario": "duplicate",
   "title": "Duplicate delivery",
-  "git_sha": "e23e673",
-  "started_at": "2026-09-29T15:00:12.230Z",
-  "finished_at": "2026-09-29T15:00:25.488Z",
+  "git_sha": "6dd47dc",
+  "started_at": "2026-09-29T19:51:24.993Z",
+  "finished_at": "2026-09-29T19:51:38.188Z",
   "delivery_mode": "harness_signed_replay",
   "verdict": "pass",
   "precondition_note": null,
@@ -32,13 +32,13 @@
     {
       "id": "processed_at_unchanged",
       "expected": "processed_at unchanged by the duplicates",
-      "actual": "2026-09-29T15:00:20.876Z",
+      "actual": "2026-09-29T19:51:33.587Z",
       "pass": true
     },
     {
       "id": "state_not_rewritten",
       "expected": "subscription row untouched by the duplicates (updated_at unchanged)",
-      "actual": "2026-09-29T15:00:20.868Z",
+      "actual": "2026-09-29T19:51:33.579Z",
       "pass": true
     },
     {
@@ -49,7 +49,7 @@
     }
   ],
   "evidence": {
-    "event_id": "evt_1UL2VxQ4GjjDgzvf0lODEZXw",
+    "event_id": "evt_1UL73lQ4GjjDgzvfJs21w3my",
     "http_statuses": [
       200,
       200,

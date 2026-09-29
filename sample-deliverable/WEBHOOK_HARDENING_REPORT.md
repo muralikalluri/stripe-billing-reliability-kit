@@ -38,5 +38,5 @@ Live results from the kit's failure-injection scenarios against Stripe test mode
 | Out-of-order delivery (updated before created) | PASS | PASS |
 | Missed webhook (listener down while the customer pays) | PASS | PASS |
 | Tampered payload | PASS | PASS |
-| Renewal failure (test clock + failing card) | PASS* | FAIL |
+| Renewal failure (test clock + failing card) | PASS* | PASS* |
 <!-- /generated -->

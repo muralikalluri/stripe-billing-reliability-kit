@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "run_id": "mumyzufg",
+  "run_id": "mun2sso9",
   "target": "spring-boot",
   "scenario": "missed-webhook",
   "title": "Missed webhook (listener down while the customer pays)",
-  "git_sha": "8674860",
-  "started_at": "2026-09-29T17:48:35.405Z",
-  "finished_at": "2026-09-29T17:49:05.925Z",
+  "git_sha": "6dd47dc",
+  "started_at": "2026-09-29T19:35:05.001Z",
+  "finished_at": "2026-09-29T19:35:30.905Z",
   "delivery_mode": "none (listener stopped; nothing delivered)",
   "verdict": "pass",
   "precondition_note": null,
@@ -38,7 +38,7 @@
     {
       "id": "one_repair",
       "expected": "drift report shows exactly 1 repair, for this subscription (missing_in_db)",
-      "actual": "{\"repaired\":1,\"mine\":[{\"stripeSubscriptionId\":\"sub_1UL58vQ4GjjDgzvf7VQHulml\",\"userId\":\"chaos_mumyzufg_missed\",\"kind\":\"missing_in_db\",\"action\":\"repaired\"}]}",
+      "actual": "{\"repaired\":1,\"mine\":[{\"stripeSubscriptionId\":\"sub_1UL6nzQ4GjjDgzvfhjgQNbgi\",\"userId\":\"chaos_mun2sso9_missed\",\"kind\":\"missing_in_db\",\"action\":\"repaired\"}]}",
       "pass": true
     },
     {
@@ -56,11 +56,11 @@
   ],
   "evidence": {
     "stripe_event_ids": [
-      "evt_1UL58yQ4GjjDgzvf9NWXIXx1"
+      "evt_1UL6o1Q4GjjDgzvfoXH5TM2p"
     ],
     "reconcile": {
       "counts": {
-        "inSync": 0,
+        "inSync": 1,
         "repaired": 1,
         "failed": 0,
         "skipped": 9,
@@ -69,8 +69,8 @@
       "complete": true,
       "mine": [
         {
-          "stripeSubscriptionId": "sub_1UL58vQ4GjjDgzvf7VQHulml",
-          "userId": "chaos_mumyzufg_missed",
+          "stripeSubscriptionId": "sub_1UL6nzQ4GjjDgzvfhjgQNbgi",
+          "userId": "chaos_mun2sso9_missed",
           "kind": "missing_in_db",
           "action": "repaired"
         }

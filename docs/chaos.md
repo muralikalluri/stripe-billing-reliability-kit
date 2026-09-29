@@ -6,11 +6,21 @@
 
 | Scenario | Verdict | Delivery | Commit | Run |
 |---|---|---|---|---|
-| Duplicate delivery | PASS | harness_signed_replay | `e23e673` | 2026-09-29T15:00:25.488Z |
-| Out-of-order delivery (updated before created) | PASS | harness_signed_replay | `e23e673` | 2026-09-29T15:00:50.733Z |
-| Missed webhook (listener down while the customer pays) | PASS | none (listener stopped; nothing delivered) | `e23e673` | 2026-09-29T15:01:17.997Z |
-| Tampered payload | PASS | harness_signed_replay | `e23e673` | 2026-09-29T15:01:29.377Z |
-| Renewal failure (test clock + failing card) | PASS* | stripe listen (real forwarded events) | `e23e673` | 2026-09-29T15:03:23.459Z |
+| Duplicate delivery | PASS | harness_signed_replay | `6dd47dc` | 2026-09-29T19:51:38.188Z |
+| Out-of-order delivery (updated before created) | PASS | harness_signed_replay | `6dd47dc` | 2026-09-29T19:51:57.235Z |
+| Missed webhook (listener down while the customer pays) | PASS | none (listener stopped; nothing delivered) | `6dd47dc` | 2026-09-29T19:52:23.030Z |
+| Tampered payload | PASS | harness_signed_replay | `6dd47dc` | 2026-09-29T19:52:30.639Z |
+| Renewal failure (test clock + failing card) | PASS* | stripe listen (real forwarded events) | `6dd47dc` | 2026-09-29T20:00:47.447Z |
+
+Recorded runs (every run since history tracking began; the table above shows the latest):
+
+| Scenario | Runs | PASS | PASS* | FAIL |
+|---|---|---|---|---|
+| Duplicate delivery | 1 | 1 | 0 | 0 |
+| Out-of-order delivery (updated before created) | 1 | 1 | 0 | 0 |
+| Missed webhook (listener down while the customer pays) | 1 | 1 | 0 | 0 |
+| Tampered payload | 1 | 1 | 0 | 0 |
+| Renewal failure (test clock + failing card) | 3 | 0 | 3 | 0 |
 
 ### Duplicate delivery
 
@@ -21,8 +31,8 @@ Verdict: **PASS**
 | `http_all_200` | 3 deliveries of one event all return 200 | [200,200,200] | PASS |
 | `one_event_row` | exactly 1 webhook_events row for the event | 1 | PASS |
 | `processed_once` | attempts = 1 (processed exactly once) | 1 | PASS |
-| `processed_at_unchanged` | processed_at unchanged by the duplicates | 2026-09-29T15:00:20.876Z | PASS |
-| `state_not_rewritten` | subscription row untouched by the duplicates (updated_at unchanged) | 2026-09-29T15:00:20.868Z | PASS |
+| `processed_at_unchanged` | processed_at unchanged by the duplicates | 2026-09-29T19:51:33.587Z | PASS |
+| `state_not_rewritten` | subscription row untouched by the duplicates (updated_at unchanged) | 2026-09-29T19:51:33.579Z | PASS |
 | `one_entitlement` | exactly 1 entitlement, plan pro | pro | PASS |
 
 ### Out-of-order delivery (updated before created)
@@ -31,9 +41,9 @@ Verdict: **PASS**
 
 | Check | Expected | Actual | |
 |---|---|---|---|
-| `real_order_gap` | created.created < updated.created (a real ordering exists) | [1790694031,1790694044] | PASS |
-| `arrival_order` | updated was received before created | ["2026-09-29T15:00:45.174Z","2026-09-29T15:00:47.218Z"] | PASS |
-| `event_clock_not_regressed` | updated_from_event_created stays at the newer event's created | 1790694044 | PASS |
+| `real_order_gap` | created.created < updated.created (a real ordering exists) | [1790711502,1790711510] | PASS |
+| `arrival_order` | updated was received before created | ["2026-09-29T19:51:51.150Z","2026-09-29T19:51:53.687Z"] | PASS |
+| `event_clock_not_regressed` | updated_from_event_created stays at the newer event's created | 1790711510 | PASS |
 | `matches_stripe` | final row equals Stripe (status, cancel_at_period_end) | ["active",true] | PASS |
 | `access_kept` | entitlement plan = pro (still paid until period end) | pro | PASS |
 
@@ -47,7 +57,7 @@ Verdict: **PASS**
 | `nothing_received` | Stripe has the events, our DB received none | 0 | PASS |
 | `no_subscription_row` | no subscription row before reconcile | null | PASS |
 | `no_access_before` | user paid but has NO entitlement (the bug) | null | PASS |
-| `one_repair` | drift report shows exactly 1 repair, for this subscription (missing_in_db) | {"repaired":1,"mine":[{"stripeSubscriptionId":"sub_1UL2WbQ4GjjDgzvfemKRZJEv","userId":"chaos_mumt04ha_missed","kind":"missing_in_db","action":"repaired"}]} | PASS |
+| `one_repair` | drift report shows exactly 1 repair, for this subscription (missing_in_db) | {"repaired":1,"mine":[{"stripeSubscriptionId":"sub_1UL74JQ4GjjDgzvfwAx54s0Q","userId":"chaos_mun3ehpw_missed","kind":"missing_in_db","action":"repaired"}]} | PASS |
 | `access_restored` | entitlement plan = pro after reconcile | pro | PASS |
 | `second_run_clean` | a second reconcile repairs nothing | 0 | PASS |
 
@@ -74,7 +84,7 @@ Verdict: **PASS***
 |---|---|---|---|
 | `initial_active` | active, plan pro | {"status":"active","plan":"pro"} | PASS |
 | `past_due_keeps_access` | past_due: still plan pro (grace) | {"status":"past_due","plan":"pro"} | PASS |
-| `grace_anchored_on_period_start` | valid_until = current_period_start + grace | 2026-11-01T15:01:31.000Z | PASS |
+| `grace_anchored_on_period_start` | valid_until = current_period_start + grace | 2026-11-01T19:58:58.000Z | PASS |
 | `access_before_grace_end` | 1h before grace ends: access | true | PASS |
 | `no_access_after_grace` | 1h after grace ends: NO access (status recorded as evidence) | false | PASS |
 | `final_no_access` | after retries are exhausted: plan free | {"status":"canceled","plan":"free"} | PASS |
@@ -83,11 +93,11 @@ Verdict: **PASS***
 
 | Scenario | Verdict | Delivery | Commit | Run |
 |---|---|---|---|---|
-| Duplicate delivery | PASS | harness_signed_replay | `6eb8411+dirty` | 2026-09-29T19:33:35.362Z |
-| Out-of-order delivery (updated before created) | PASS | harness_signed_replay | `6eb8411+dirty` | 2026-09-29T19:33:54.489Z |
-| Missed webhook (listener down while the customer pays) | PASS | none (listener stopped; nothing delivered) | `8674860` | 2026-09-29T17:49:05.925Z |
-| Tampered payload | PASS | harness_signed_replay | `8674860` | 2026-09-29T17:49:16.386Z |
-| Renewal failure (test clock + failing card) | PASS* | stripe listen (real forwarded events) | `8674860` | 2026-09-29T17:53:47.397Z |
+| Duplicate delivery | PASS | harness_signed_replay | `6dd47dc` | 2026-09-29T19:34:43.183Z |
+| Out-of-order delivery (updated before created) | PASS | harness_signed_replay | `6dd47dc` | 2026-09-29T19:35:05.000Z |
+| Missed webhook (listener down while the customer pays) | PASS | none (listener stopped; nothing delivered) | `6dd47dc` | 2026-09-29T19:35:30.905Z |
+| Tampered payload | PASS | harness_signed_replay | `6dd47dc` | 2026-09-29T19:35:41.349Z |
+| Renewal failure (test clock + failing card) | PASS* | stripe listen (real forwarded events) | `6dd47dc` | 2026-09-29T19:51:15.109Z |
 
 Recorded runs (every run since history tracking began; the table above shows the latest):
 
@@ -95,6 +105,9 @@ Recorded runs (every run since history tracking began; the table above shows the
 |---|---|---|---|---|
 | Duplicate delivery | 1 | 1 | 0 | 0 |
 | Out-of-order delivery (updated before created) | 1 | 1 | 0 | 0 |
+| Missed webhook (listener down while the customer pays) | 1 | 1 | 0 | 0 |
+| Tampered payload | 1 | 1 | 0 | 0 |
+| Renewal failure (test clock + failing card) | 3 | 0 | 1 | 2 |
 
 ### Duplicate delivery
 
@@ -105,8 +118,8 @@ Verdict: **PASS**
 | `http_all_200` | 3 deliveries of one event all return 200 | [200,200,200] | PASS |
 | `one_event_row` | exactly 1 webhook_events row for the event | 1 | PASS |
 | `processed_once` | attempts = 1 (processed exactly once) | 1 | PASS |
-| `processed_at_unchanged` | processed_at unchanged by the duplicates | 2026-09-29T19:33:30.922Z | PASS |
-| `state_not_rewritten` | subscription row untouched by the duplicates (updated_at unchanged) | 2026-09-29T19:33:30.290Z | PASS |
+| `processed_at_unchanged` | processed_at unchanged by the duplicates | 2026-09-29T19:34:38.900Z | PASS |
+| `state_not_rewritten` | subscription row untouched by the duplicates (updated_at unchanged) | 2026-09-29T19:34:38.320Z | PASS |
 | `one_entitlement` | exactly 1 entitlement, plan pro | pro | PASS |
 
 ### Out-of-order delivery (updated before created)
@@ -115,9 +128,9 @@ Verdict: **PASS**
 
 | Check | Expected | Actual | |
 |---|---|---|---|
-| `real_order_gap` | created.created < updated.created (a real ordering exists) | [1790710419,1790710429] | PASS |
-| `arrival_order` | updated was received before created | ["2026-09-29T19:33:50.138Z","2026-09-29T19:33:51.663Z"] | PASS |
-| `event_clock_not_regressed` | updated_from_event_created stays at the newer event's created | 1790710429 | PASS |
+| `real_order_gap` | created.created < updated.created (a real ordering exists) | [1790710487,1790710500] | PASS |
+| `arrival_order` | updated was received before created | ["2026-09-29T19:35:00.647Z","2026-09-29T19:35:01.676Z"] | PASS |
+| `event_clock_not_regressed` | updated_from_event_created stays at the newer event's created | 1790710500 | PASS |
 | `matches_stripe` | final row equals Stripe (status, cancel_at_period_end) | ["active",true] | PASS |
 | `access_kept` | entitlement plan = pro (still paid until period end) | pro | PASS |
 
@@ -131,7 +144,7 @@ Verdict: **PASS**
 | `nothing_received` | Stripe has the events, our DB received none | 0 | PASS |
 | `no_subscription_row` | no subscription row before reconcile | null | PASS |
 | `no_access_before` | user paid but has NO entitlement (the bug) | null | PASS |
-| `one_repair` | drift report shows exactly 1 repair, for this subscription (missing_in_db) | {"repaired":1,"mine":[{"stripeSubscriptionId":"sub_1UL58vQ4GjjDgzvf7VQHulml","userId":"chaos_mumyzufg_missed","kind":"missing_in_db","action":"repaired"}]} | PASS |
+| `one_repair` | drift report shows exactly 1 repair, for this subscription (missing_in_db) | {"repaired":1,"mine":[{"stripeSubscriptionId":"sub_1UL6nzQ4GjjDgzvfhjgQNbgi","userId":"chaos_mun2sso9_missed","kind":"missing_in_db","action":"repaired"}]} | PASS |
 | `access_restored` | entitlement plan = pro after reconcile | pro | PASS |
 | `second_run_clean` | a second reconcile repairs nothing | 0 | PASS |
 
@@ -158,7 +171,7 @@ Verdict: **PASS***
 |---|---|---|---|
 | `initial_active` | active, plan pro | {"status":"active","plan":"pro"} | PASS |
 | `past_due_keeps_access` | past_due: still plan pro (grace) | {"status":"past_due","plan":"pro"} | PASS |
-| `grace_anchored_on_period_start` | valid_until = current_period_start + grace | 2026-11-01T17:52:03.000Z | PASS |
+| `grace_anchored_on_period_start` | valid_until = current_period_start + grace | 2026-11-01T19:49:38.000Z | PASS |
 | `access_before_grace_end` | 1h before grace ends: access | true | PASS |
 | `no_access_after_grace` | 1h after grace ends: NO access (status recorded as evidence) | false | PASS |
 | `final_no_access` | after retries are exhausted: plan free | {"status":"canceled","plan":"free"} | PASS |
