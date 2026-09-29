@@ -7,8 +7,7 @@
   "scripts": {
     "scenario": "tsx src/run.ts",
     "render": "tsx src/render.ts",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "pg": "^8.23.0",

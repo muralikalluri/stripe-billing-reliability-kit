@@ -1,7 +1,7 @@
 import type Stripe from "stripe";
 import { eq, isNull, lte, or, sql } from "drizzle-orm";
 import type { Db } from "@/db/client";
-import { customers, entitlements, subscriptions, webhookEvents } from "@/db/schema";
+import { customers, entitlements, subscriptions, users, webhookEvents } from "@/db/schema";
 import { bestEntitlement, deriveEntitlement, type Entitlement } from "@/lib/entitlements/derive";
 import { planNameForPrice } from "@/lib/plans";
 
@@ -112,6 +112,9 @@ export async function syncSubscription(
     const [cust] = await tx.select().from(customers).where(eq(customers.stripeCustomerId, stripeCustomerId));
     const userId = cust?.userId ?? sub.metadata?.user_id;
     if (!userId) throw new Error(`no user for stripe customer ${stripeCustomerId}`); // throw, never guess
+    // Metadata can point at a user that was deleted (or never existed here): same "unmapped" outcome, not an FK error.
+    const [owner] = await tx.select({ id: users.id }).from(users).where(eq(users.id, userId));
+    if (!owner) throw new Error(`no user for stripe customer ${stripeCustomerId}`);
 
     const [existing] = await tx.select().from(subscriptions).where(eq(subscriptions.stripeSubscriptionId, sub.id));
     if (existing && existing.userId !== userId) {

@@ -109,6 +109,11 @@ export async function createSubscription(ctx: Ctx, fx: Fixture) {
   });
 }
 
+export async function advanceClock(ctx: Ctx, clockId: string, toSec: number) {
+  await ctx.stripe.testHelpers.testClocks.advance(clockId, { frozen_time: toSec });
+  await waitFor("test clock ready", async () => (await ctx.stripe.testHelpers.testClocks.retrieve(clockId)).status === "ready", 120_000, 2000);
+}
+
 // ---------- events and delivery ----------
 export async function findEvents(ctx: Ctx, opts: { sinceSec: number; types: string[]; subId: string; min: number; timeoutMs?: number }): Promise<Stripe.Event[]> {
   return waitFor(`${opts.min} event(s) ${opts.types.join(",")} for ${opts.subId}`, async () => {

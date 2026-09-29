@@ -27,6 +27,11 @@ The runner imports nothing from `nextjs/`. A target only needs: the webhook URL 
 The harness refuses to run unless the key is a Stripe **test** key and `DATABASE_URL` is local, aborts on any `livemode` event, and scrubs key-shaped strings from results.
 
 ## Notes and limits
+- Every scenario's customer lives on a Stripe **test clock**; deleting the clock at cleanup deletes its subscriptions, so runs leave nothing behind in the account's subscription list (a leftover canceled subscription would show up in later reconcile runs).
+- Correct ordering in the out-of-order scenario comes from the worker **re-fetching the latest subscription from Stripe**, not from re-sequencing payloads; `event_clock_not_regressed` is the check that the compare-and-set guard also held.
+- Duplicate delivery is proven by database effects (one row, `attempts = 1`, nothing rewritten), not by a response flag, so the same check works on any implementation.
+- "Missed webhook" creates the subscription through the API rather than the hosted Checkout page; the Checkout path is not exercised here.
+- The renewal scenario judges access by comparing the stored `valid_until` to the test clock (the app's own check uses the wall clock). The app's clock-based expiry is covered by `nextjs/test` unit/integration tests, not by this scenario.
 - Duplicate/out-of-order/tamper use **harness-signed replay** of real events, not `stripe events resend` (that needs a registered endpoint; only `stripe listen` is used here).
 - The renewal-failure test-clock timestamps are simulated time, so access is checked against the clock (`valid_until > clock`), not the wall clock.
 - Whether retries end in `unpaid` or `canceled` is a Stripe Dashboard setting. If it ends `canceled`, the verdict is `PASS*`: access is removed either way, but the `unpaid` path was not exercised.

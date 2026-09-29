@@ -1,5 +1,5 @@
 import {
-  count, createFixture, createSubscription, deliver, entRow, eventRow, findEvents, Recorder, runReconcile, setPaymentMethod,
+  advanceClock, count, createFixture, createSubscription, deliver, entRow, eventRow, findEvents, Recorder, runReconcile, setPaymentMethod,
   sign, sleep, startListener, stopListener, subRow, waitAllIdle, waitFor, waitSettled, type Ctx,
 } from "./lib.js";
 
@@ -20,7 +20,7 @@ const duplicate: Scenario = {
   deliveryMode: "harness_signed_replay",
   async run(ctx, rec) {
     const since = nowSec();
-    const fx = await createFixture(ctx, "duplicate");
+    const fx = await createFixture(ctx, "duplicate", { testClock: true });
     const sub = await createSubscription(ctx, fx);
     const [created] = (await findEvents(ctx, { sinceSec: since, types: ["customer.subscription.created"], subId: sub.id, min: 1 }));
     rec.evidence.event_id = created.id;
@@ -39,8 +39,8 @@ const duplicate: Scenario = {
     rec.check("http_all_200", "3 deliveries of one event all return 200", [first.status, second.status, third.status], [first.status, second.status, third.status].every((s) => s === 200));
     rec.check("one_event_row", "exactly 1 webhook_events row for the event", await count(ctx, "select count(*)::int n from webhook_events where event_id=$1", [created.id]), (await count(ctx, "select count(*)::int n from webhook_events where event_id=$1", [created.id])) === 1);
     rec.check("processed_once", "attempts = 1 (processed exactly once)", after.attempts, after.attempts === 1 && after.status === "processed");
-    rec.check("processed_at_unchanged", "processed_at unchanged by the duplicates", String(after.processed_at), String(after.processed_at) === String(before.processed_at));
-    rec.check("state_not_rewritten", "subscription row untouched by the duplicates (updated_at unchanged)", String(subAfter.updated_at), String(subAfter.updated_at) === String(subBefore.updated_at));
+    rec.check("processed_at_unchanged", "processed_at unchanged by the duplicates", new Date(after.processed_at).toISOString(), +new Date(after.processed_at) === +new Date(before.processed_at));
+    rec.check("state_not_rewritten", "subscription row untouched by the duplicates (updated_at unchanged)", new Date(subAfter.updated_at).toISOString(), +new Date(subAfter.updated_at) === +new Date(subBefore.updated_at));
     rec.check("one_entitlement", "exactly 1 entitlement, plan pro", (await entRow(ctx, fx.userId))?.plan, (await count(ctx, "select count(*)::int n from entitlements where user_id=$1", [fx.userId])) === 1 && (await entRow(ctx, fx.userId)).plan === "pro");
   },
 };
@@ -52,9 +52,10 @@ const outOfOrder: Scenario = {
   deliveryMode: "harness_signed_replay",
   async run(ctx, rec) {
     const since = nowSec();
-    const fx = await createFixture(ctx, "ooo");
+    const fx = await createFixture(ctx, "ooo", { testClock: true });
     const sub = await createSubscription(ctx, fx);
     await sleep(2200); // event.created has 1s resolution: avoid a tie
+    if (fx.clockId) await advanceClock(ctx, fx.clockId, nowSec() + 3600); // ...and under a test clock, move the clock too
     await ctx.stripe.subscriptions.update(sub.id, { cancel_at_period_end: true });
     const events = await findEvents(ctx, { sinceSec: since, types: SUB_EVENTS, subId: sub.id, min: 2 });
     const created = events.find((e) => e.type === "customer.subscription.created")!;
@@ -87,10 +88,10 @@ const missedWebhook: Scenario = {
   async run(ctx, rec) {
     // The listener is not running: nothing is delivering webhooks. Confirm a clean baseline first.
     const baseline = runReconcile(ctx);
-    rec.check("baseline_no_repairs", "baseline reconcile repairs nothing (clean environment)", baseline.counts.repaired, baseline.counts.repaired === 0);
+    rec.check("baseline_clean", "baseline reconcile: nothing repaired, nothing failed, listing complete", { repaired: baseline.counts.repaired, failed: baseline.counts.failed, complete: baseline.complete }, baseline.counts.repaired === 0 && baseline.counts.failed === 0 && baseline.complete);
 
     const since = nowSec();
-    const fx = await createFixture(ctx, "missed");
+    const fx = await createFixture(ctx, "missed", { testClock: true });
     const sub = await createSubscription(ctx, fx);
     const events = await findEvents(ctx, { sinceSec: since, types: SUB_EVENTS, subId: sub.id, min: 1 });
     events.forEach((e) => ctx.tracked.eventIds.add(e.id));
@@ -120,7 +121,7 @@ const tamper: Scenario = {
   deliveryMode: "harness_signed_replay",
   async run(ctx, rec) {
     const since = nowSec();
-    const fx = await createFixture(ctx, "tamper");
+    const fx = await createFixture(ctx, "tamper", { testClock: true });
     const sub = await createSubscription(ctx, fx);
     const [ev] = await findEvents(ctx, { sinceSec: since, types: ["customer.subscription.created"], subId: sub.id, min: 1 });
     ctx.tracked.eventIds.add(ev.id);
@@ -158,8 +159,7 @@ const renewalFailure: Scenario = {
     const fx = await createFixture(ctx, "renewal", { testClock: true });
     const clockId = fx.clockId!;
     const advance = async (toSec: number) => {
-      await ctx.stripe.testHelpers.testClocks.advance(clockId, { frozen_time: toSec });
-      await waitFor("test clock ready", async () => (await ctx.stripe.testHelpers.testClocks.retrieve(clockId)).status === "ready", 120_000, 2000);
+      await advanceClock(ctx, clockId, toSec);
       await waitAllIdle(ctx);
     };
     const clockNow = async () => (await ctx.stripe.testHelpers.testClocks.retrieve(clockId)).frozen_time;

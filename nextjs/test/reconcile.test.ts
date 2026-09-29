@@ -135,6 +135,13 @@ describe("partial failure", () => {
     expect(await ctx.db.select().from(subscriptions)).toHaveLength(0);
   });
 
+  it("a subscription whose metadata user no longer exists (deleted account) is skipped, not failed", async () => {
+    const stripe = fakeStripe([fakeSubscription({ id: "sub_gone", customer: "cus_deleted", userMeta: "user_that_was_deleted" })]);
+    const r = await reconcile(ctx.db, stripe.api, opts);
+    expect(r.counts).toMatchObject({ skipped: 1, failed: 0 });
+    expect(r.drift[0]).toMatchObject({ action: "skipped", error: "unmapped_customer" });
+  });
+
   it("a listing failure mid-pagination marks the run incomplete, keeps repairs, and skips orphan detection", async () => {
     const list = ["a", "b", "c", "d"].map((x) => fakeSubscription({ id: `sub_${x}`, customer: "cus_1" }));
     const stripe = fakeStripe(list);
