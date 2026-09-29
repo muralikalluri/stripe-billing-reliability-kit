@@ -1,0 +1,33 @@
+spring:
+  main:
+    banner-mode: "off"
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:55432/pagemint_spring}
+    username: ${POSTGRES_USER:pagemint}
+    password: ${POSTGRES_PASSWORD:pagemint_local_only}
+    hikari:
+      # The Stripe call happens while a transaction + advisory lock are held: keep headroom above worker concurrency.
+      maximum-pool-size: 10
+  flyway:
+    enabled: true
+    # Fails loudly if it finds a database it did not create (e.g. the drizzle one) instead of adopting it.
+    baseline-on-migrate: false
+
+server:
+  port: ${SERVER_PORT:3200}
+
+pagemint:
+  worker:
+    poll-ms: 1000
+
+---
+spring:
+  config:
+    activate:
+      on-profile: cli
+logging:
+  level:
+    root: WARN
+pagemint:
+  scheduling:
+    enabled: false
