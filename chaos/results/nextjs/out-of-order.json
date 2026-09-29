@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "run_id": "mumsqxvv",
+  "run_id": "mumszl01",
   "target": "nextjs",
   "scenario": "out-of-order",
   "title": "Out-of-order delivery (updated before created)",
-  "git_sha": "95ec19d",
-  "started_at": "2026-09-29T14:53:42.283Z",
-  "finished_at": "2026-09-29T14:53:53.644Z",
+  "git_sha": "e23e673",
+  "started_at": "2026-09-29T15:00:25.489Z",
+  "finished_at": "2026-09-29T15:00:50.733Z",
   "delivery_mode": "harness_signed_replay",
   "verdict": "pass",
   "precondition_note": null,
@@ -14,19 +14,19 @@
     {
       "id": "real_order_gap",
       "expected": "created.created < updated.created (a real ordering exists)",
-      "actual": "[1790693626,1790693629]",
+      "actual": "[1790694031,1790694044]",
       "pass": true
     },
     {
       "id": "arrival_order",
       "expected": "updated was received before created",
-      "actual": "[\"2026-09-29T14:53:50.081Z\",\"2026-09-29T14:53:50.601Z\"]",
+      "actual": "[\"2026-09-29T15:00:45.174Z\",\"2026-09-29T15:00:47.218Z\"]",
       "pass": true
     },
     {
       "id": "event_clock_not_regressed",
       "expected": "updated_from_event_created stays at the newer event's created",
-      "actual": "1790693629",
+      "actual": "1790694044",
       "pass": true
     },
     {
@@ -44,12 +44,12 @@
   ],
   "evidence": {
     "created": {
-      "id": "evt_1UL2PfQ4GjjDgzvf3lWbcWbl",
-      "created": 1790693626
+      "id": "evt_1UL2WCQ4GjjDgzvfE2MN5xsK",
+      "created": 1790694031
     },
     "updated": {
-      "id": "evt_1UL2PhQ4GjjDgzvfYIVrN4vj",
-      "created": 1790693629
+      "id": "evt_1UL2WOQ4GjjDgzvfMvjSYztZ",
+      "created": 1790694044
     }
   }
 }

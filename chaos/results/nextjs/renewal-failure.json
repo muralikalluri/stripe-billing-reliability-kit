@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "run_id": "mumsrtte",
+  "run_id": "mumt0yap",
   "target": "nextjs",
   "scenario": "renewal-failure",
   "title": "Renewal failure (test clock + failing card)",
-  "git_sha": "95ec19d",
-  "started_at": "2026-09-29T14:54:23.667Z",
-  "finished_at": "2026-09-29T14:56:21.770Z",
+  "git_sha": "e23e673",
+  "started_at": "2026-09-29T15:01:29.378Z",
+  "finished_at": "2026-09-29T15:03:23.459Z",
   "delivery_mode": "stripe listen (real forwarded events)",
   "verdict": "precondition_violated",
   "precondition_note": "final status was \"canceled\", not \"unpaid\": set Stripe Dashboard > Billing > Revenue recovery > \"mark the subscription as unpaid\" to exercise the unpaid path (access is removed either way).",
@@ -26,7 +26,7 @@
     {
       "id": "grace_anchored_on_period_start",
       "expected": "valid_until = current_period_start + grace",
-      "actual": "2026-11-01T14:54:25.000Z",
+      "actual": "2026-11-01T15:01:31.000Z",
       "pass": true
     },
     {
