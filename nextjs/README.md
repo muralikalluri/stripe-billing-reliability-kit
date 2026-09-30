@@ -28,3 +28,11 @@ npm run typecheck && npm test            # needs Docker (Testcontainers starts P
 - Detection uses Stripe's subscription listing (plus a per-customer listing, because Stripe hides test-clock subscriptions from the global list); repairs go through `syncSubscription` only (fresh fetch under the lock, `version=null` so the event clock is never moved). Drift kinds: `missing_in_db`, `field_mismatch`, `entitlement_stale`, `orphan` (reported, never auto-revoked). A circuit breaker stops repairs if most subscriptions drift (wrong account/mode guard).
 - `/admin/events` (webhook events with status/attempts/error, retry for failed events, run-reconcile button, latest drift report) is visible only to emails in `ADMIN_EMAILS`; everyone else gets a 404, and every action re-checks.
 - The Stripe subscription list has no `updated` filter (SPEC §3.5 assumed one), so reconcile scans everything. Fine for a kit; for large accounts diff `events.list` against `webhook_events` instead.
+
+## Auth in production
+The demo login is **disabled in production builds** (`next start`), by design: it lets anyone sign in as anyone. Use `npm run dev` for local demos with `DEMO_AUTH=1`.
+
+For a real deployment, configure a real Auth.js provider (email magic link, OAuth, ...) in `src/auth.ts`, and set `AUTH_SECRET`. Auth.js also refuses hosts it does not trust in production: set `AUTH_URL` to your public URL (or `AUTH_TRUST_HOST=true` behind a proxy you control), otherwise every `/api/auth/*` call fails with `UntrustedHost`. The billing code only needs `session.user.id` and `session.user.email`.
+
+## Live end-to-end test
+`npm run e2e` drives a real browser through pricing, the hosted Checkout page (4242 test card), the webhook worker and the billing portal. It is opt-in and needs your Stripe test keys: see [e2e/README.md](e2e/README.md).

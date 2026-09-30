@@ -90,6 +90,7 @@ stripe listen --events checkout.session.completed,customer.subscription.created,
 set -a; . ./.env; set +a
 npm test                                 # seed script + sample repro (the repro needs DATABASE_URL)
 (cd nextjs && npm run typecheck && npm test)      # Docker: Testcontainers starts Postgres
+(cd nextjs && npm run e2e)                        # LIVE: real browser + hosted Checkout, see nextjs/e2e/README.md
 (cd spring-boot && mvn test)                      # Docker: Testcontainers
 ```
 
@@ -109,7 +110,7 @@ See [chaos/README.md](chaos/README.md).
 - **Reconciliation:** finds and repairs missed or drifted subscriptions, reports orphans without revoking, and has a circuit breaker for wrong-account/mode situations.
 - **Admin:** webhook events with status/attempts/error, retry of failed events, run-reconcile (Next.js page, Spring API), gated by an allowlist.
 - **Two implementations, one contract:** same tables (a test compares the schemas); the same failure scenarios are run against both (see Results and Limits). See [docs/api-contract.md](docs/api-contract.md).
-- **Failure-injection harness:** five scenarios with expected vs actual, generated into the docs.
+- **Failure-injection harness and live e2e:** five scenarios with expected vs actual, generated into the docs, plus a Playwright test that pays on the real hosted Checkout page.
 - **Portability notes:** [Supabase](docs/supabase.md) and [Firebase](docs/firebase.md) pattern guides.
 
 ## Design decisions
@@ -125,10 +126,11 @@ See [chaos/README.md](chaos/README.md).
 
 Checked against the MVP scope in `SPEC.md` (M0-M6; M7 was deliberately skipped):
 
-- **Not built:** the Playwright end-to-end test (pricing, checkout with a test card, access granted); Stripe API stubs in CI use in-memory fakes, not `stripe-mock`.
-- **Not proven live:** the hosted Checkout purchase and the Customer Portal were never exercised against real Stripe (scenario subscriptions are created through the API), so "a test-mode purchase grants access" is demonstrated through the webhook path, not through the Checkout page. The `unpaid` retry outcome depends on a Stripe Dashboard setting and was not exercised (the account ended subscriptions as `canceled`).
+- **Not built:** Stripe API stubs in CI use in-memory fakes, not `stripe-mock`.
+- **Proven live, but only by the opt-in e2e:** a purchase through the real hosted Checkout page with the 4242 test card grants access through the webhook worker, and the Customer Portal opens ([nextjs/e2e](nextjs/e2e/README.md), run locally; it needs your Stripe keys, so it is not part of CI).
+- **Not exercised:** actions inside the Customer Portal (upgrade, downgrade, cancel), the nightly 03:00 reconcile actually firing, and the `unpaid` retry outcome (a Stripe Dashboard setting; the account ended subscriptions as `canceled`).
 - **CI:** GitHub Actions has not run on this repository (an account billing block stops the jobs before they start), so the CI badge does not reflect the suites; they were run locally.
-- **Renewal scenario reliability:** it waits on Stripe's test-clock processing and failed on some recorded runs, more often on the Spring target (counts in the Results table and [docs/chaos.md](docs/chaos.md), discussion in [chaos/README.md](chaos/README.md)). "The same scenarios pass on both implementations" is therefore not fully demonstrated.
+- **Renewal scenario reliability:** it waits on Stripe's test-clock processing and times out on some runs (counts in the Results table and [docs/chaos.md](docs/chaos.md), discussion in [chaos/README.md](chaos/README.md)). The recorded history has more failures on the Spring target, but a later full verification run, not recorded in that history, timed out on both targets, so treat the timeouts as Stripe-side latency until shown otherwise. "The same scenarios pass on both implementations" is therefore not fully demonstrated.
 - **Deviations from SPEC:** reconcile scans everything because Stripe's subscription list has no `updated` filter; the Spring implementation has no checkout/portal (API, webhook, reconcile and admin only); duplicate delivery is replayed by the harness instead of `stripe events resend`.
 - **Placeholders:** demo authentication (Next.js) is deliberately insecure and local-only; the Spring API expects tokens from your own identity provider. Per-seat Team quantity sync and proration (M7) are planned later.
 

@@ -61,7 +61,7 @@ Results of the five failure scenarios against Stripe test mode, per implementati
 `PASS*` means all checks passed but the account's retry setting ended the subscription as `canceled` instead of `unpaid`; access is removed either way, but the `unpaid` path itself was not exercised.
 
 ## 6. Known limits (from the reviews)
-- The hosted Checkout purchase and Customer Portal were not exercised against real Stripe in this repository's runs; subscriptions in the scenarios are created through the API.
-- The renewal scenario waits on Stripe's test-clock processing and timed out on some recorded runs, more often on the Spring target; run counts are in [`docs/chaos.md`](../docs/chaos.md) and the discussion in [`chaos/README.md`](../chaos/README.md).
+- The failure scenarios create subscriptions through the API. The hosted Checkout purchase (real page, 4242 test card) and the Customer Portal opening are covered separately by the opt-in live Playwright test in `nextjs/e2e/`; actions inside the portal (upgrade, downgrade, cancel) were not exercised.
+- The renewal scenario waits on Stripe's test-clock processing and timed out on some runs on both implementations; recorded run counts are in [`docs/chaos.md`](../docs/chaos.md) and the discussion in [`chaos/README.md`](../chaos/README.md).
 - Demo authentication (Next.js) and the JWT-only API (Spring) are placeholders for your identity provider.
 - Team per-seat quantity sync and proration preview are out of scope (planned later).
