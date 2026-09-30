@@ -91,6 +91,7 @@ set -a; . ./.env; set +a
 npm test                                 # seed script + sample repro (the repro needs DATABASE_URL)
 (cd nextjs && npm run typecheck && npm test)      # Docker: Testcontainers starts Postgres
 (cd nextjs && npm run e2e)                        # LIVE: real browser + hosted Checkout, see nextjs/e2e/README.md
+npm run flows:live                                # LIVE: the app's HTTP routes vs Stripe test mode (needs the dev server, see scripts/live/app-flows.mjs)
 (cd spring-boot && mvn test)                      # Docker: Testcontainers
 ```
 

@@ -18,3 +18,5 @@ It is **opt-in and live**, so it is not part of `npm test` or CI. Port 3100 is u
 ## Notes
 - The hosted Checkout page is Stripe's markup. The selectors (`#cardNumber`, `#cardExpiry`, `#cardCvc`, `#billingName`, `hosted-payment-submit-button`) may need updating if Stripe changes it.
 - If your shell shows a coding-agent tool as the parent, `next dev` may generate agent instruction files in `nextjs/`; delete them, they are not part of this project.
+
+For a quicker check of the app's HTTP routes without paying (login, pricing, Checkout/Portal session creation, admin page), see `npm run flows:live` at the repository root (`scripts/live/app-flows.mjs`).
