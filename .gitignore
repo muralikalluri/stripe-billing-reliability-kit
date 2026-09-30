@@ -21,3 +21,5 @@ next-env.d.ts
 reconcile-report.json
 chaos/.run/
 chaos/results/.reconcile-*
+test-results/
+playwright-report/
