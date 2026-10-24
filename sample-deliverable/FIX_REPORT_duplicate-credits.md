@@ -70,7 +70,7 @@ One transaction; the ledger row is inserted first behind a **unique index on `st
 <!-- /generated -->
 
 ## 4. Test added
-`duplicate-credits-repro/repro.test.mjs` replays the same `invoice.paid` event several times, sequentially and concurrently, against both handlers. It asserts the vulnerable handler over-credits (this documents the seeded flaw) and the fixed one credits exactly once. It is wired into CI against Postgres (GitHub Actions has not run on this repository yet; see the README limits), and passes locally.
+`duplicate-credits-repro/repro.test.mjs` replays the same `invoice.paid` event several times, sequentially and concurrently, against both handlers. It asserts the vulnerable handler over-credits (this documents the seeded flaw) and the fixed one credits exactly once. It is wired into CI against Postgres and passes both in CI and locally.
 
 ## 5. Verification
 **What was run for this sample:** the repro above against a local Postgres, replaying one synthetic `invoice.paid` event. Results (generated):
