@@ -1,0 +1,6 @@
+{
+  "tasks": {
+    "check": "deno check stripe-webhook/index.ts stripe-worker/index.ts stripe-reconcile/index.ts",
+    "test": "deno test --no-check --allow-env --allow-net --allow-read tests/"
+  }
+}

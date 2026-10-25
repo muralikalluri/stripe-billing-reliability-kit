@@ -1,6 +1,6 @@
 # stripe-billing-reliability-kit
 
-**Stripe subscriptions that stay correct when webhooks arrive late, twice, out of order or not at all.** Two reference implementations (Next.js and Spring Boot) that share one database contract, a failure-injection harness that breaks delivery on purpose against real Stripe test mode, and a reconciliation job that repairs drift.
+**Stripe subscriptions that stay correct when webhooks arrive late, twice, out of order or not at all.** Reference implementations for Next.js, Spring Boot and Supabase Edge Functions that share one database contract, a failure-injection harness that breaks delivery on purpose against real Stripe test mode, a reconciliation job that repairs drift, and a **free read-only health check** you can run on your own app and Stripe account.
 
 ![CI](https://github.com/muralikalluri/stripe-billing-reliability-kit/actions/workflows/ci.yml/badge.svg)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -13,6 +13,17 @@
 ![Failure-injection demo](docs/demo/failure-demo.gif)
 
 Recorded live against Stripe test mode: one event delivered three times gives one effect, a tampered payload is rejected with nothing processed, and a customer who pays while webhooks are down gets access back after a reconcile (exactly one repair). Re-record with `docs/demo/failure-demo.tape` (see its header).
+
+## Free Stripe health check
+
+Find out in two minutes whether your integration has the mistakes that cost money: paid customers without access, double credits, cancellations that never revoke access, webhooks that silently stopped arriving. Read-only, no dependencies.
+
+```bash
+node health-check/cli.mjs scan /path/to/your/app --out stripe-health.md          # your code
+STRIPE_API_KEY=rk_live_... node health-check/cli.mjs stripe --out stripe-account.md   # your Stripe account (restricted read-only key)
+```
+
+It checks 9 code rules (signature verification, raw body, Edge runtime, duplicate protection, success-page grants, missing lifecycle events, committed keys, event ordering, reconciliation) and 8 account rules (disabled endpoints, missing event types, undelivered events in the last 30 days, duplicate endpoints, API-version drift). Example report on a typical broken Express integration: [health-check/examples/report-express-app.md](health-check/examples/report-express-app.md). Details: [health-check/README.md](health-check/README.md).
 
 ## Results
 
@@ -93,6 +104,7 @@ npm test                                 # seed script + sample repro (the repro
 (cd nextjs && npm run e2e)                        # LIVE: real browser + hosted Checkout, see nextjs/e2e/README.md
 npm run flows:live                                # LIVE: the app's HTTP routes vs Stripe test mode (needs the dev server, see scripts/live/app-flows.mjs)
 (cd spring-boot && mvn test)                      # Docker: Testcontainers
+(cd supabase/functions && TEST_DATABASE_URL=postgres://... deno task test)   # Supabase: migration + functions vs Postgres
 ```
 
 **Failure scenarios** (live, test mode)
@@ -112,7 +124,9 @@ See [chaos/README.md](chaos/README.md).
 - **Admin:** webhook events with status/attempts/error, retry of failed events, run-reconcile (Next.js page, Spring API), gated by an allowlist.
 - **Two implementations, one contract:** same tables (a test compares the schemas); the same failure scenarios are run against both (see Results and Limits). See [docs/api-contract.md](docs/api-contract.md).
 - **Failure-injection harness and live e2e:** five scenarios with expected vs actual, generated into the docs, plus a Playwright test that pays on the real hosted Checkout page.
-- **Portability notes:** [Supabase](docs/supabase.md) and [Firebase](docs/firebase.md) pattern guides.
+- **Supabase implementation:** Edge Functions + one SQL migration with RLS, the same rules, 21 tests in CI against Postgres (including SQL-vs-TypeScript access-policy parity). See [supabase/README.md](supabase/README.md).
+- **Health check:** read-only scanner for code and Stripe account setup, tested on three deliberately broken example apps. See [health-check/README.md](health-check/README.md).
+- **Portability notes:** [Firebase](docs/firebase.md) pattern guide.
 
 ## Design decisions
 
@@ -130,7 +144,9 @@ Checked against the MVP scope in `SPEC.md` (M0-M6; M7 was deliberately skipped):
 - **Not built:** Stripe API stubs in CI use in-memory fakes, not `stripe-mock`.
 - **Proven live, but only by the opt-in e2e:** a purchase through the real hosted Checkout page with the 4242 test card grants access through the webhook worker, and the Customer Portal opens ([nextjs/e2e](nextjs/e2e/README.md), run locally; it needs your Stripe keys, so it is not part of CI).
 - **Not exercised:** actions inside the Customer Portal (upgrade, downgrade, cancel), the nightly 03:00 reconcile actually firing, and the `unpaid` retry outcome (a Stripe Dashboard setting; the account ended subscriptions as `canceled`).
-- **CI:** GitHub Actions runs the seed/sample tests, the Next.js typecheck, tests and build, the Spring Boot `mvn verify`, and the chaos harness typecheck plus a check that the Results table matches `chaos/results/`. It does not run anything live: the Stripe-backed e2e, flow checks and failure scenarios need your test keys and stay local.
+- **Supabase:** migration, functions and access policy are tested in CI against Postgres with a fake Stripe; the live chaos scenarios have not yet been recorded against it (`chaos/targets/supabase.sh` is ready), so it has no column in the Results table.
+- **Health check:** heuristic by design ("likely" findings need a human look); the account checks are tested against a fake Stripe API and have been run against a real test-mode account; not yet against a live-mode account.
+- **CI:** GitHub Actions runs the seed/sample tests, the Next.js typecheck, tests and build, the Spring Boot `mvn verify`, the Supabase migration and function tests, the health-check tests, and the chaos harness typecheck plus a check that the Results table matches `chaos/results/`. It does not run anything live: the Stripe-backed e2e, flow checks and failure scenarios need your test keys and stay local.
 - **Renewal scenario reliability:** it waits on Stripe's test-clock processing and times out on some runs (counts in the Results table and [docs/chaos.md](docs/chaos.md), discussion in [chaos/README.md](chaos/README.md)). The recorded history has more failures on the Spring target, but a later full verification run, not recorded in that history, timed out on both targets, so treat the timeouts as Stripe-side latency until shown otherwise. "The same scenarios pass on both implementations" is therefore not fully demonstrated.
 - **Deviations from SPEC:** reconcile scans everything because Stripe's subscription list has no `updated` filter; the Spring implementation has no checkout/portal (API, webhook, reconcile and admin only); duplicate delivery is replayed by the harness instead of `stripe events resend`.
 - **Placeholders:** demo authentication (Next.js) is deliberately insecure and local-only; the Spring API expects tokens from your own identity provider. Per-seat Team quantity sync and proration (M7) are planned later.
@@ -147,7 +163,7 @@ What a client receives, in [sample-deliverable/](sample-deliverable/) (fictional
 
 ## Hire me
 
-Need Stripe subscriptions and webhooks that hold up in production? [Hire me on Upwork](https://www.upwork.com/freelancers/~01c80d5fd70c92b97d).
+Customers paid but have no access? Double charges or credits? Webhooks failing? Run the health check above, then [hire me on Upwork](https://www.upwork.com/freelancers/~01c80d5fd70c92b97d) to fix what it finds: Next.js, Node, Supabase, Firebase or Java/Spring Boot.
 
 ## License
 

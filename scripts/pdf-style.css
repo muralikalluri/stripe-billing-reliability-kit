@@ -1,0 +1,33 @@
+/* Print stylesheet for the sample deliverable PDFs (scripts/export-pdf.mjs). */
+:root { --ink: #1c2430; --muted: #5b6675; --line: #d5dbe3; --accent: #1f5fbf; --zebra: #f5f7fa; }
+* { box-sizing: border-box; }
+html { font-size: 10.5pt; }
+body { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; color: var(--ink); line-height: 1.5; margin: 0; max-width: none; }
+h1, h2, h3 { color: var(--ink); line-height: 1.25; break-after: avoid; }
+h1 { font-size: 1.9rem; margin: 0 0 .6rem; border-bottom: 3px solid var(--accent); padding-bottom: .3rem; }
+h2 { font-size: 1.35rem; margin: 1.8rem 0 .5rem; border-bottom: 1px solid var(--line); padding-bottom: .2rem; }
+h3 { font-size: 1.1rem; margin: 1.3rem 0 .3rem; color: var(--accent); }
+p, li { orphans: 3; widows: 3; }
+a { color: var(--accent); text-decoration: none; }
+blockquote { margin: .8rem 0; padding: .6rem .9rem; background: #eef3fb; border-left: 4px solid var(--accent); color: var(--ink); }
+blockquote p { margin: .2rem 0; }
+code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .88em; background: #eef1f5; padding: .05em .3em; border-radius: 3px; }
+pre { background: #f3f5f8; border: 1px solid var(--line); border-radius: 4px; padding: .6rem .8rem; overflow: hidden; break-inside: avoid; }
+pre code { background: none; padding: 0; }
+pre.mermaid { background: #fff; border: 1px solid var(--line); text-align: center; }
+table { border-collapse: collapse; width: 100%; margin: .7rem 0 1rem; font-size: .86rem; break-inside: auto; }
+th, td { border: 1px solid var(--line); padding: .3rem .5rem; text-align: left; vertical-align: top; }
+th { background: #e8edf4; font-weight: 600; }
+tr { break-inside: avoid; }
+tbody tr:nth-child(even) td { background: var(--zebra); }
+ul, ol { padding-left: 1.3rem; }
+li { margin: .15rem 0; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 1.2rem 0; }
+img { max-width: 100%; }
+@page { size: A4; margin: 18mm 15mm 20mm 15mm; }
+/* Wide tables: wrap long code paths instead of running off the page. */
+th, td { overflow-wrap: break-word; }
+td code, th code { white-space: normal; word-break: break-word; }
+col { width: auto !important; }
+td:nth-child(1), th:nth-child(1) { white-space: nowrap; }
+pre { font-size: .8em; white-space: pre-wrap; }

@@ -1,6 +1,6 @@
 # The same pattern on Supabase (Edge Functions + Postgres)
 
-> **Pattern sketch, not executed in this repository.** The reference implementations here are Next.js and Spring Boot. Supabase gives you Postgres (the tables in [api-contract.md](api-contract.md) apply unchanged) and Deno-based Edge Functions, so the rules from SPEC §3.2 map directly. Test the function with the Stripe CLI and the chaos scenarios (point `WEBHOOK_URL` at it) before trusting it.
+> **Now implemented and tested: see [supabase/](../supabase/README.md).** This page is the design note behind it: how each rule maps to Supabase. The implementation follows it, with one change: instead of `pgmq` it uses an `event_jobs` outbox table (same shape as the Spring Boot version), so it runs on any Postgres and is testable in CI.
 
 ## Mapping the rules
 

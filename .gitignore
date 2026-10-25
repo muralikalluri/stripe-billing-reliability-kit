@@ -23,3 +23,7 @@ chaos/.run/
 chaos/results/.reconcile-*
 test-results/
 playwright-report/
+
+# Supabase CLI local state
+supabase/.temp/
+supabase/.branches/

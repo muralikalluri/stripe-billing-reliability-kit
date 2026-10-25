@@ -1,0 +1,17 @@
+# Supabase CLI project config for the billing kit. Unlisted settings use the CLI defaults
+# (API on :54321, Postgres on :54322). Run `supabase start` from the repository root.
+project_id = "pagemint-billing"
+
+[db]
+major_version = 15
+
+# Stripe authenticates the webhook with its signature, not a Supabase JWT.
+[functions.stripe-webhook]
+verify_jwt = false
+
+# Worker and reconcile check the service-role key themselves (works with legacy JWT and new sb_secret_ keys).
+[functions.stripe-worker]
+verify_jwt = false
+
+[functions.stripe-reconcile]
+verify_jwt = false
